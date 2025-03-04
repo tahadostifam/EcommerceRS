@@ -39,8 +39,21 @@ Welcome to the **Ecommerce RESTful API** project! This is an open-source, scalab
 ### Installation
 
 1. **Clone the repository**:
-   ```bash
+
+```bash
    git clone https://github.com/tahadostifam/EcommerceRS.git
    cd EcommerceRS
+```
 
-### Coming soon.
+### Coming soon
+
+## License
+
+This project is licensed under the MIT License. See the LICENSE file for details.
+
+## Contact
+
+If you have any questions or suggestions, feel free to reach out:
+
+- **Email:** mr.tahadostifam@gmail.com
+- **Github Issues** [Create Issue](https://github.com/tahadostifam/EcommerceRS/issues)
