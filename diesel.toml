@@ -2,8 +2,8 @@
 # see https://diesel.rs/guides/configuring-diesel-cli
 
 [print_schema]
-file = "src/schema.rs"
+file = "./src/adapters/diesel/schema.rs"
 custom_type_derives = ["diesel::query_builder::QueryId", "Clone"]
 
 [migrations_directory]
-dir = "/home/taha/Code/EcommerceRS/migrations"
+dir = "./src/adapters/diesel/migrations"
