@@ -3,15 +3,33 @@ use crate::core::models::{
     product_category::{ProductCategory, ProductCategoryError},
 };
 
-
 pub trait ProductRepository {
-    fn create_product(&mut self, name: String, description: String, price: f64, stock: i32, ) -> Result<Product, ProductError>;
-    // fn find_product_by_id(&mut self, id: i64) -> Result<Product, ProductError>;
-    // fn find_all_products(&mut self) -> Result<Vec<Product>, ProductError>;
-    // fn update_product(&mut self, product: UpdateProduct) -> Result<Product, ProductError>;
-    // fn delete_product(&mut self, id: i64) -> Result<(), ProductError>;
-    // fn find_products_by_name(&mut self, name: &str) -> Result<Vec<Product>, ProductError>;
-    // fn update_product_stock(&mut self, id: i64, new_stock: i32) -> Result<Product, ProductError>;
+    fn create_product(
+        &mut self,
+        name: String,
+        description: String,
+        price: f64,
+        stock: i32,
+    ) -> Result<Product, ProductError>;
+
+    fn find_product_by_id(&mut self, id: i64) -> Result<Product, ProductError>;
+
+    fn find_all_products(&mut self) -> Result<Vec<Product>, ProductError>;
+
+    fn find_products_by_name(&mut self, name: String) -> Result<Vec<Product>, ProductError>;
+
+    fn delete_product(&mut self, id: i64) -> Result<(), ProductError>;
+
+    fn update_product(
+        &mut self,
+        id: i64,
+        new_name: String,
+        new_description: String,
+        new_price: f64,
+        new_stock: i32,
+    ) -> Result<Product, ProductError>;
+
+    fn update_product_stock(&mut self, id: i64, new_stock: i32) -> Result<Product, ProductError>;
 }
 
 pub trait ProductCategoryRepository {

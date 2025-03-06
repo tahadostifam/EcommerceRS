@@ -9,13 +9,15 @@ use adapters::postgres::{
 };
 
 fn main() {
+    // Config
     let cfg = config::read();
 
+    // Database Connections
     let pg_conn = new_postgres_adapter(cfg.database.url);
+
+    // Repositories
     let mut product_repository = ProductRepositoryImpl::new(pg_conn);
-    let _ = product_repository
-        .create_product(String::from("product 1"), String::from("desc"), 10.5, 3)
-        .unwrap();
+
 
     println!("EcommerceRS Bootstrap");
 }
