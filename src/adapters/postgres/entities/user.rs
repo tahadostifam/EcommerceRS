@@ -12,3 +12,10 @@ pub struct UserEntity {
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
+
+#[derive(Debug, Insertable, AsChangeset)]
+#[diesel(table_name = users)]
+pub struct NewUserEntity {
+    pub email: String,
+    pub password_hash: String,
+}

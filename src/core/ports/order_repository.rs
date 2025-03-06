@@ -1,5 +1,4 @@
 use crate::core::models::order::{Order, OrderError, OrderItem, OrderStatus};
-
 pub trait OrderRepository {
     fn create_order(&mut self, order: Order) -> Result<Order, OrderError>;
     fn find_order_by_id(&mut self, id: i64) -> Result<Order, OrderError>;

@@ -7,16 +7,6 @@ pub struct Auth {
     pub created_at: NaiveDateTime,
 }
 
-pub struct LoginCredentials {
-    pub email: String,
-    pub password: String,
-}
-
-pub struct RegisterCredentials {
-    pub email: String,
-    pub password: String,
-}
-
 pub struct RefreshToken {
     pub token: String,
     pub user_id: i64,
@@ -25,9 +15,7 @@ pub struct RefreshToken {
 
 #[derive(Debug)]
 pub enum AuthError {
-    UserNotFound,
     InvalidCredentials,
-    EmailAlreadyExists,
     TokenExpired,
     InternalError,
 }

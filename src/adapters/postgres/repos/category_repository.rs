@@ -23,6 +23,7 @@ impl CategoryRepositoryImpl {
 impl CategoryRepository for CategoryRepositoryImpl {
     fn create_category(&mut self, category: Category) -> Result<Category, CategoryError> {
         let mut conn_borrow = self.conn.borrow_mut();
+        
         diesel::insert_into(categories::table)
             .values(CategoryEntity {
                 id: category.id,
@@ -44,6 +45,7 @@ impl CategoryRepository for CategoryRepositoryImpl {
 
     fn find_category_by_id(&mut self, id: i64) -> Result<Category, CategoryError> {
         let mut conn_borrow = self.conn.borrow_mut();
+
         categories::table
             .filter(categories::id.eq(id))
             .first::<CategoryEntity>(conn_borrow.deref_mut())
@@ -59,6 +61,7 @@ impl CategoryRepository for CategoryRepositoryImpl {
 
     fn find_all_categories(&mut self) -> Result<Vec<Category>, CategoryError> {
         let mut conn_borrow = self.conn.borrow_mut();
+
         categories::table
             .load::<CategoryEntity>(conn_borrow.deref_mut())
             .map(|entities| {
@@ -78,6 +81,7 @@ impl CategoryRepository for CategoryRepositoryImpl {
 
     fn update_category(&mut self, category: Category) -> Result<Category, CategoryError> {
         let mut conn_borrow = self.conn.borrow_mut();
+
         diesel::update(categories::table.filter(categories::id.eq(category.id)))
             .set((
                 categories::name.eq(category.name),
@@ -96,6 +100,7 @@ impl CategoryRepository for CategoryRepositoryImpl {
 
     fn delete_category(&mut self, id: i64) -> Result<(), CategoryError> {
         let mut conn_borrow = self.conn.borrow_mut();
+
         diesel::delete(categories::table.filter(categories::id.eq(id)))
             .execute(conn_borrow.deref_mut())
             .map(|affected_rows| {
@@ -110,6 +115,7 @@ impl CategoryRepository for CategoryRepositoryImpl {
 
     fn find_categories_by_name(&mut self, name: &str) -> Result<Vec<Category>, CategoryError> {
         let mut conn_borrow = self.conn.borrow_mut();
+
         categories::table
             .filter(categories::name.like(format!("%{}%", name)))
             .load::<CategoryEntity>(conn_borrow.deref_mut())

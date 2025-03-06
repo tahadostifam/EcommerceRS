@@ -1,4 +1,4 @@
-use diesel::{pg::Pg, prelude::*};
+use diesel::{prelude::*};
 use chrono::NaiveDateTime;
 use crate::adapters::postgres::schema::*;
 

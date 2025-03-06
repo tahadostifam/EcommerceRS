@@ -1,10 +1,7 @@
-use crate::core::models::{
-    auth::{AuthError, LoginCredentials, RegisterCredentials},
-    user::User,
-};
+use crate::core::models::{user::UserError, user::User};
 
 pub trait UserRepository {
-    fn register(&mut self, credentials: RegisterCredentials) -> Result<User, AuthError>;
-    fn login(&mut self, credentials: LoginCredentials) -> Result<User, AuthError>;
-    fn find_by_email(&mut self, email: &str) -> Result<User, AuthError>;
+    fn create(&mut self, email: String, password_hash: String) -> Result<User, UserError>;
+    fn find_by_email(&mut self, email: &str) -> Result<User, UserError>;
+    fn find_by_id(&mut self, id: i64) -> Result<User, UserError>;
 }
