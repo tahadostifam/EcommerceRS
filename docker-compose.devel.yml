@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  postgres: 
+    network_mode: host
+    image: postgres:17-alpine
+    container_name: ecommercers_postgres
+    restart: always  
+    environment:
+      POSTGRES_USER: admin 
+      POSTGRES_PASSWORD: admin 
+      POSTGRES_DB: default
+    ports:
+      - "5432:5432"

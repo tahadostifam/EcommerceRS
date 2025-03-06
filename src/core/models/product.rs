@@ -17,5 +17,4 @@ pub enum ProductError {
     NotFound,
     InvalidData,
     DatabaseError,
-    Conflict,
 }

@@ -1,2 +1,2 @@
-pub mod diesel;
+pub mod postgres;
 pub mod restapi;

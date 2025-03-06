@@ -3,15 +3,21 @@ use std::{env, fs, sync::LazyLock};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Server {
-    host: String,
-    port: i32,
-    allowed_origins: Vec<String>,
+    pub host: String,
+    pub port: i32,
+    pub allowed_origins: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Database {
+    pub url: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
-    server: Server,
-    version: String,
+    pub server: Server,
+    pub database: Database,
+    pub version: String,
 }
 
 static INSTANCE: LazyLock<Config> = LazyLock::new(|| {
@@ -27,6 +33,7 @@ static INSTANCE: LazyLock<Config> = LazyLock::new(|| {
     );
     let data = fs::read_to_string(file_path).unwrap();
     let config: Config = toml::from_str(data.as_str()).unwrap();
+    set_database_url(config.database.url.clone());
     return config;
 });
 
@@ -43,4 +50,8 @@ pub fn app_env() -> String {
             env
         ),
     }
+}
+
+fn set_database_url(url: String) {
+    unsafe { env::set_var("DATABASE_URL", url) };
 }

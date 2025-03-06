@@ -1,5 +1,5 @@
 {
-  description = "Cyrus language flake";
+  description = "EcommerceRS flake";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
@@ -27,22 +27,15 @@
         };
         nativeBuildInputs = [
           rustToolchain
-          pkgs.sqlite
           pkgs.postgresql
         ];
       };
 
       devShells.${system}.default = pkgs.mkShell {
-        name = "cyrus-dev-shell";
-
-        buildInputs = with pkgs; [
-          
-        ];
-        
+        name = "ecommercers-dev-shell";
         shellHook = ''
-          export LIBRARY_PATH="${pkgs.sqlite.out}/lib:${pkgs.postgresql.lib}/lib:$LIBRARY_PATH"
-
-          alias cyrus="cargo run --"
+          export LIBRARY_PATH="${pkgs.postgresql.lib}/lib:$LIBRARY_PATH"
+          alias ecommercers="cargo run --"
         '';
       };
     };
