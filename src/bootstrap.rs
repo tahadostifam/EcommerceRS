@@ -10,10 +10,17 @@ fn main() {
 
     // Database Connections
     let pg_conn = Rc::new(RefCell::new(
-        adapters::postgres::adapter::new_postgres_adapter(cfg.database.url),
+        adapters::postgres::adapter::new_postgres_adapter(cfg.postgres.url),
     ));
 
+    let redis_conn = Rc::new(RefCell::new(adapters::redis::adapter::new_redis_adapter(
+        cfg.redis.url,
+    )));
+
     // Repositories
+    let auth_repository =
+        adapters::redis::repos::auth_repository::AuthRepositoryImpl::new(redis_conn);
+
     let mut product_repository =
         adapters::postgres::repos::product_repository::ProductRepositoryImpl::new(Rc::clone(
             &pg_conn,

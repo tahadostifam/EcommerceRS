@@ -9,14 +9,20 @@ pub struct Server {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Database {
+pub struct Postgres {
+    pub url: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Redis {
     pub url: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
     pub server: Server,
-    pub database: Database,
+    pub postgres: Postgres,
+    pub redis: Redis,
     pub version: String,
 }
 
@@ -33,7 +39,7 @@ static INSTANCE: LazyLock<Config> = LazyLock::new(|| {
     );
     let data = fs::read_to_string(file_path).unwrap();
     let config: Config = toml::from_str(data.as_str()).unwrap();
-    set_database_url(config.database.url.clone());
+    set_database_url(config.postgres.url.clone());
     return config;
 });
 
