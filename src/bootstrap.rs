@@ -1,16 +1,14 @@
-mod adapters;
-mod config;
-mod core;
-use config::Config;
-use core::services::user_service::{UserService, new_user_service};
+use crate::adapters;
+use crate::config::{self, Config};
+use crate::core::services::user_service::{UserService, new_user_service};
 use std::{cell::RefCell, rc::Rc};
 
 pub struct Services {
-    cfg: Rc<RefCell<Config>>,
-    user_service: Rc<RefCell<UserService>>,
+    pub cfg: Rc<RefCell<Config>>,
+    pub user_service: Rc<RefCell<UserService>>,
 }
 
-fn bootstrap_services() -> Services {
+pub fn bootstrap_services() -> Services {
     // Config
     let cfg = config::read();
 

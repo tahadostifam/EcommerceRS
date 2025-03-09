@@ -1,5 +1,5 @@
 [package]
-name = "EcommerceRS"
+name = "ecommercers"
 version = "0.1.0"
 edition = "2024"
 
@@ -14,9 +14,9 @@ toml = "0.8.20"
 rand = "0.8"
 argon2 = "0.5.3"
 
-[[bin]]
-name = "ecommercers-cli"
-path = "./src/bootstrap.rs"
+[lib]
+name = "ecommercers"
+path = "./src/ecommercers.rs"
 
 [workspace]
 members = ["entrypoints/restapi"]

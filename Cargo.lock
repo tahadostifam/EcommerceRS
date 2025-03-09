@@ -3,21 +3,6 @@
 version = 4
 
 [[package]]
-name = "EcommerceRS"
-version = "0.1.0"
-dependencies = [
- "argon2",
- "chrono",
- "clap",
- "diesel",
- "rand",
- "redis",
- "serde",
- "serde_json",
- "toml",
-]
-
-[[package]]
 name = "actix-codec"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -706,6 +691,21 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "ecommercers"
+version = "0.1.0"
+dependencies = [
+ "argon2",
+ "chrono",
+ "clap",
+ "diesel",
+ "rand",
+ "redis",
+ "serde",
+ "serde_json",
+ "toml",
 ]
 
 [[package]]
@@ -1416,6 +1416,7 @@ name = "restapi"
 version = "0.1.0"
 dependencies = [
  "actix-web",
+ "ecommercers",
 ]
 
 [[package]]

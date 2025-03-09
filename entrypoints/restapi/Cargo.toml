@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 actix-web = "4.9.0"
+ecommercers = { path = "../../", version = "*" }
 
 [[bin]]
 name = "ecommercers-restapi"

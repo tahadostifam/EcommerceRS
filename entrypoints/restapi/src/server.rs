@@ -13,5 +13,9 @@
 // }
 
 fn main() {
-    println!("assdasdasd");
+    let mut services = ecommercers::bootstrap::bootstrap_services();
+    let cfg = services.cfg.borrow_mut();
+    let user_service = services.user_service.borrow_mut();
+
+    unimplemented!();
 }
