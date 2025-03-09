@@ -1,21 +1,31 @@
-// use actix_web::{App, HttpServer};
+use actix_web::{App, HttpServer, web};
+use controllers::user_controller::new_user_controller;
 
-// #[actix_web::main]
-// async fn main() -> std::io::Result<()> {
-//     let cfg: &mut Config = bootstrap_services().cfg.get_mut();
-//     let user_service = bootstrap_services().user_service.get_mut();
+mod controllers;
+mod errors;
+mod dto;
+mod middlewares;
 
-//     HttpServer::new(|| App::new().service(new_user_controller()))
-//         .bind(format!("{}:{}", cfg.server.host, cfg.server.port))
-//         .unwrap()
-//         .run()
-//         .await
-// }
+#[derive(Clone, Copy)]
+pub struct Sample {
+    x: i32,
+}
 
-fn main() {
-    let mut services = ecommercers::bootstrap::bootstrap_services();
-    let cfg = services.cfg.borrow_mut();
-    let user_service = services.user_service.borrow_mut();
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    let services = ecommercers::bootstrap::bootstrap_services();
+    let cfg = services.cfg.lock().unwrap();
 
-    unimplemented!();
+    let endpoint_addr = format!("{}:{}", cfg.server.host, cfg.server.port);
+    println!("# RestAPI Endpoint: {}", endpoint_addr.clone());
+
+    HttpServer::new(move || {
+        App::new()
+            .app_data(web::Data::new(services.user_service.clone()))
+            .service(new_user_controller())
+    })
+    .bind(endpoint_addr)
+    .unwrap()
+    .run()
+    .await
 }

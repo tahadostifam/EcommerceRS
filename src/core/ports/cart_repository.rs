@@ -1,6 +1,6 @@
 use crate::core::models::cart::{Cart, CartItem};
 
-pub trait CartRepository {
+pub trait CartRepository : Send + Sync{
     fn create_cart(&mut self, user_id: i64) -> Result<Cart, CartError>;
     fn find_cart_by_id(&mut self, id: i64) -> Result<Cart, CartError>;
     fn find_carts_by_user_id(&mut self, user_id: i64) -> Result<Cart, CartError>;

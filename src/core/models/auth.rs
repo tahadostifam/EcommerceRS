@@ -1,4 +1,5 @@
 use chrono::NaiveDateTime;
+use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
 pub struct Auth {
@@ -15,7 +16,7 @@ pub struct RefreshToken {
     pub expires_at: NaiveDateTime,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Display)]
 pub enum AuthError {
     InvalidPayload,
     InvalidCredentials,

@@ -1,5 +1,6 @@
+use std::ops::DerefMut;
 use std::str::FromStr;
-use std::{cell::RefCell, ops::DerefMut, rc::Rc};
+use std::sync::{Arc, Mutex};
 
 use diesel::{ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl};
 
@@ -11,18 +12,18 @@ use crate::{
 };
 
 pub struct OrderRepositoryImpl {
-    conn: Rc<RefCell<PgConnection>>,
+    conn: Arc<Mutex<PgConnection>>,
 }
 
 impl OrderRepositoryImpl {
-    pub fn new(conn: Rc<RefCell<PgConnection>>) -> Self {
+    pub fn new(conn: Arc<Mutex<PgConnection>>) -> Self {
         OrderRepositoryImpl { conn }
     }
 }
 
 impl OrderRepository for OrderRepositoryImpl {
     fn create_order(&mut self, order: Order) -> Result<Order, OrderError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
 
         diesel::insert_into(orders::table)
             .values(OrderEntity {
@@ -46,7 +47,7 @@ impl OrderRepository for OrderRepositoryImpl {
     }
 
     fn find_order_by_id(&mut self, id: i64) -> Result<Order, OrderError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
 
         orders::table
             .filter(orders::id.eq(id))
@@ -63,7 +64,7 @@ impl OrderRepository for OrderRepositoryImpl {
     }
 
     fn find_orders_by_user_id(&mut self, user_id: i64) -> Result<Vec<Order>, OrderError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
 
         orders::table
             .filter(orders::user_id.eq(user_id))
@@ -89,7 +90,7 @@ impl OrderRepository for OrderRepositoryImpl {
         id: i64,
         new_status: OrderStatus,
     ) -> Result<Order, OrderError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
 
         diesel::update(orders::table.filter(orders::id.eq(id)))
             .set(orders::status.eq(new_status.to_string()))
@@ -106,7 +107,7 @@ impl OrderRepository for OrderRepositoryImpl {
     }
 
     fn delete_order(&mut self, id: i64) -> Result<(), OrderError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
         diesel::delete(orders::table.filter(orders::id.eq(id)))
             .execute(conn_borrow.deref_mut())
             .map(|affected_rows| {
@@ -120,7 +121,7 @@ impl OrderRepository for OrderRepositoryImpl {
     }
 
     fn add_order_item(&mut self, order_item: OrderItem) -> Result<OrderItem, OrderError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
         diesel::insert_into(order_items::table)
             .values(&OrderItemEntity {
                 id: order_item.id,
@@ -148,7 +149,7 @@ impl OrderRepository for OrderRepositoryImpl {
         &mut self,
         order_id: i64,
     ) -> Result<Vec<OrderItem>, OrderError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
         order_items::table
             .filter(order_items::order_id.eq(order_id))
             .load::<OrderItemEntity>(conn_borrow.deref_mut())
@@ -174,7 +175,7 @@ impl OrderRepository for OrderRepositoryImpl {
         order_item_id: i64,
         new_quantity: i32,
     ) -> Result<OrderItem, OrderError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
         diesel::update(order_items::table.filter(order_items::id.eq(order_item_id)))
             .set(order_items::quantity.eq(new_quantity))
             .get_result::<OrderItemEntity>(conn_borrow.deref_mut())
@@ -191,7 +192,7 @@ impl OrderRepository for OrderRepositoryImpl {
     }
 
     fn remove_order_item(&mut self, order_item_id: i64) -> Result<(), OrderError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
         diesel::delete(order_items::table.filter(order_items::id.eq(order_item_id)))
             .execute(conn_borrow.deref_mut())
             .map(|affected_rows| {

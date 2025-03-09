@@ -3,7 +3,7 @@ use crate::core::models::{
     product_category::{ProductCategory, ProductCategoryError},
 };
 
-pub trait ProductRepository {
+pub trait ProductRepository: Send + Sync {
     fn create_product(
         &mut self,
         name: String,

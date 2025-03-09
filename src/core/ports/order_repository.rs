@@ -1,5 +1,6 @@
 use crate::core::models::order::{Order, OrderError, OrderItem, OrderStatus};
-pub trait OrderRepository {
+
+pub trait OrderRepository: Send + Sync {
     fn create_order(&mut self, order: Order) -> Result<Order, OrderError>;
     fn find_order_by_id(&mut self, id: i64) -> Result<Order, OrderError>;
     fn find_orders_by_user_id(&mut self, user_id: i64) -> Result<Vec<Order>, OrderError>;

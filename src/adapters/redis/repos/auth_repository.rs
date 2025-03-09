@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::sync::{Arc, Mutex};
 
 use redis::Commands;
 
@@ -8,11 +8,11 @@ use crate::core::{
 };
 
 pub struct AuthRepositoryImpl {
-    conn: Rc<RefCell<redis::Client>>,
+    conn: Arc<Mutex<redis::Client>>,
 }
 
 impl AuthRepositoryImpl {
-    pub fn new(conn: Rc<RefCell<redis::Client>>) -> Self {
+    pub fn new(conn: Arc<Mutex<redis::Client>>) -> Self {
         AuthRepositoryImpl { conn }
     }
 }
@@ -26,7 +26,8 @@ impl AuthRepository for AuthRepositoryImpl {
     ) -> Result<(), AuthError> {
         let mut client = self
             .conn
-            .borrow_mut()
+            .lock()
+            .unwrap()
             .get_connection()
             .map_err(|_| AuthError::InternalError)?;
 
@@ -49,7 +50,8 @@ impl AuthRepository for AuthRepositoryImpl {
     ) -> Result<RefreshToken, AuthError> {
         let mut client = self
             .conn
-            .borrow_mut()
+            .lock()
+            .unwrap()
             .get_connection()
             .map_err(|_| AuthError::InternalError)?;
 
@@ -66,7 +68,8 @@ impl AuthRepository for AuthRepositoryImpl {
     fn delete_refresh_token(&mut self, user_id: i64, token: &str) -> Result<(), AuthError> {
         let mut client = self
             .conn
-            .borrow_mut()
+            .lock()
+            .unwrap()
             .get_connection()
             .map_err(|_| AuthError::InternalError)?;
 

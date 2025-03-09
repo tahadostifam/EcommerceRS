@@ -1,4 +1,4 @@
-use std::{cell::RefCell, ops::DerefMut, rc::Rc};
+use std::{ops::DerefMut, sync::{Arc, Mutex}};
 
 use diesel::{ExpressionMethods, PgConnection, RunQueryDsl, query_dsl::methods::FilterDsl};
 
@@ -14,11 +14,11 @@ use crate::{
 };
 
 pub struct UserRepositoryImpl {
-    conn: Rc<RefCell<PgConnection>>,
+    conn: Arc<Mutex<PgConnection>>,
 }
 
 impl UserRepositoryImpl {
-    pub fn new(conn: Rc<RefCell<PgConnection>>) -> Self {
+    pub fn new(conn: Arc<Mutex<PgConnection>>) -> Self {
         UserRepositoryImpl { conn }
     }
 }
@@ -30,7 +30,7 @@ impl UserRepository for UserRepositoryImpl {
         email: String,
         password_hash: String,
     ) -> Result<User, UserError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
 
         diesel::insert_into(users::table)
             .values(NewUserEntity {
@@ -51,7 +51,7 @@ impl UserRepository for UserRepositoryImpl {
     }
 
     fn find_by_email(&mut self, email: &str) -> Result<User, UserError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
 
         users::table
             .filter(users::email.eq(email))
@@ -68,7 +68,7 @@ impl UserRepository for UserRepositoryImpl {
     }
 
     fn find_by_id(&mut self, id: i64) -> Result<User, UserError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
 
         users::table
             .filter(users::id.eq(id))

@@ -1,4 +1,5 @@
-use std::{cell::RefCell, ops::DerefMut, rc::Rc};
+use std::ops::DerefMut;
+use std::sync::{Arc, Mutex};
 
 use diesel::prelude::*;
 use diesel::{ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl};
@@ -11,19 +12,19 @@ use crate::{
 };
 
 pub struct CategoryRepositoryImpl {
-    conn: Rc<RefCell<PgConnection>>,
+    conn: Arc<Mutex<PgConnection>>,
 }
 
 impl CategoryRepositoryImpl {
-    pub fn new(conn: Rc<RefCell<PgConnection>>) -> Self {
+    pub fn new(conn: Arc<Mutex<PgConnection>>) -> Self {
         CategoryRepositoryImpl { conn }
     }
 }
 
 impl CategoryRepository for CategoryRepositoryImpl {
     fn create_category(&mut self, category: Category) -> Result<Category, CategoryError> {
-        let mut conn_borrow = self.conn.borrow_mut();
-        
+        let mut conn_borrow = self.conn.lock().unwrap();
+
         diesel::insert_into(categories::table)
             .values(CategoryEntity {
                 id: category.id,
@@ -44,7 +45,7 @@ impl CategoryRepository for CategoryRepositoryImpl {
     }
 
     fn find_category_by_id(&mut self, id: i64) -> Result<Category, CategoryError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
 
         categories::table
             .filter(categories::id.eq(id))
@@ -60,7 +61,7 @@ impl CategoryRepository for CategoryRepositoryImpl {
     }
 
     fn find_all_categories(&mut self) -> Result<Vec<Category>, CategoryError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
 
         categories::table
             .load::<CategoryEntity>(conn_borrow.deref_mut())
@@ -80,7 +81,7 @@ impl CategoryRepository for CategoryRepositoryImpl {
     }
 
     fn update_category(&mut self, category: Category) -> Result<Category, CategoryError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
 
         diesel::update(categories::table.filter(categories::id.eq(category.id)))
             .set((
@@ -99,7 +100,7 @@ impl CategoryRepository for CategoryRepositoryImpl {
     }
 
     fn delete_category(&mut self, id: i64) -> Result<(), CategoryError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
 
         diesel::delete(categories::table.filter(categories::id.eq(id)))
             .execute(conn_borrow.deref_mut())
@@ -114,7 +115,7 @@ impl CategoryRepository for CategoryRepositoryImpl {
     }
 
     fn find_categories_by_name(&mut self, name: &str) -> Result<Vec<Category>, CategoryError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
 
         categories::table
             .filter(categories::name.like(format!("%{}%", name)))

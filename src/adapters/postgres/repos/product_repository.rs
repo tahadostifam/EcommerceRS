@@ -1,4 +1,7 @@
-use std::{cell::RefCell, ops::DerefMut, rc::Rc};
+use std::{
+    ops::DerefMut,
+    sync::{Arc, Mutex},
+};
 
 use diesel::{
     ExpressionMethods, PgConnection, RunQueryDsl, TextExpressionMethods,
@@ -7,7 +10,8 @@ use diesel::{
 
 use crate::{
     adapters::postgres::{
-        entities::product::{NewProductEntity, ProductEntity}, schema::products
+        entities::product::{NewProductEntity, ProductEntity},
+        schema::products,
     },
     core::{
         models::product::{Product, ProductError},
@@ -16,11 +20,11 @@ use crate::{
 };
 
 pub struct ProductRepositoryImpl {
-    conn: Rc<RefCell<PgConnection>>,
+    conn: Arc<Mutex<PgConnection>>,
 }
 
 impl ProductRepositoryImpl {
-    pub fn new(conn: Rc<RefCell<PgConnection>>) -> Self {
+    pub fn new(conn: Arc<Mutex<PgConnection>>) -> Self {
         ProductRepositoryImpl { conn }
     }
 }
@@ -33,7 +37,7 @@ impl ProductRepository for ProductRepositoryImpl {
         price: f64,
         stock: i32,
     ) -> Result<Product, ProductError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
 
         let entity = NewProductEntity {
             name,
@@ -58,7 +62,7 @@ impl ProductRepository for ProductRepositoryImpl {
     }
 
     fn find_product_by_id(&mut self, id: i64) -> Result<Product, ProductError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
 
         products::table
             .filter(products::id.eq(id))
@@ -76,8 +80,8 @@ impl ProductRepository for ProductRepositoryImpl {
     }
 
     fn find_all_products(&mut self) -> Result<Vec<Product>, ProductError> {
-        let mut conn_borrow = self.conn.borrow_mut();
-        
+        let mut conn_borrow = self.conn.lock().unwrap();
+
         products::table
             .load::<ProductEntity>(conn_borrow.deref_mut())
             .map(|entities| {
@@ -98,8 +102,8 @@ impl ProductRepository for ProductRepositoryImpl {
     }
 
     fn delete_product(&mut self, id: i64) -> Result<(), ProductError> {
-        let mut conn_borrow = self.conn.borrow_mut();
-        
+        let mut conn_borrow = self.conn.lock().unwrap();
+
         diesel::delete(products::table.filter(products::id.eq(id)))
             .execute(conn_borrow.deref_mut())
             .map(|affected_rows| {
@@ -113,8 +117,8 @@ impl ProductRepository for ProductRepositoryImpl {
     }
 
     fn find_products_by_name(&mut self, name: String) -> Result<Vec<Product>, ProductError> {
-        let mut conn_borrow = self.conn.borrow_mut();
-        
+        let mut conn_borrow = self.conn.lock().unwrap();
+
         products::table
             .filter(products::name.like(format!("%{}%", name))) // Using LIKE for substring search
             .load::<ProductEntity>(conn_borrow.deref_mut())
@@ -143,8 +147,8 @@ impl ProductRepository for ProductRepositoryImpl {
         new_price: f64,
         new_stock: i32,
     ) -> Result<Product, ProductError> {
-        let mut conn_borrow = self.conn.borrow_mut();
-        
+        let mut conn_borrow = self.conn.lock().unwrap();
+
         diesel::update(products::table.filter(products::id.eq(id)))
             .set((
                 products::name.eq(new_name),
@@ -166,8 +170,8 @@ impl ProductRepository for ProductRepositoryImpl {
     }
 
     fn update_product_stock(&mut self, id: i64, new_stock: i32) -> Result<Product, ProductError> {
-        let mut conn_borrow = self.conn.borrow_mut();
-        
+        let mut conn_borrow = self.conn.lock().unwrap();
+
         diesel::update(products::table.filter(products::id.eq(id)))
             .set(products::stock.eq(new_stock))
             .get_result::<ProductEntity>(conn_borrow.deref_mut())

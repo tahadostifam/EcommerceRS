@@ -1,4 +1,4 @@
-use std::{cell::RefCell, ops::DerefMut, rc::Rc};
+use std::{ops::DerefMut, sync::{Arc, Mutex}};
 
 use crate::{
     adapters::postgres::{
@@ -13,18 +13,18 @@ use crate::{
 use diesel::{ExpressionMethods, PgConnection, RunQueryDsl, query_dsl::methods::FilterDsl};
 
 pub struct CartRepositoryImpl {
-    conn: Rc<RefCell<PgConnection>>,
+    conn: Arc<Mutex<PgConnection>>,
 }
 
 impl CartRepositoryImpl {
-    pub fn new(conn: Rc<RefCell<PgConnection>>) -> Self {
+    pub fn new(conn: Arc<Mutex<PgConnection>>) -> Self {
         CartRepositoryImpl { conn }
     }
 }
 
 impl CartRepository for CartRepositoryImpl {
     fn create_cart(&mut self, user_id: i64) -> Result<Cart, CartError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
 
         let new_cart = NewCartEntity { user_id };
 
@@ -41,7 +41,7 @@ impl CartRepository for CartRepositoryImpl {
     }
 
     fn find_cart_by_id(&mut self, id: i64) -> Result<Cart, CartError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
 
         carts::table
             .filter(carts::id.eq(id))
@@ -56,7 +56,7 @@ impl CartRepository for CartRepositoryImpl {
     }
 
     fn find_carts_by_user_id(&mut self, user_id: i64) -> Result<Cart, CartError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
 
         carts::table
             .filter(carts::user_id.eq(user_id))
@@ -71,7 +71,7 @@ impl CartRepository for CartRepositoryImpl {
     }
 
     fn delete_cart(&mut self, id: i64) -> Result<(), CartError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
 
         diesel::delete(carts::table.filter(carts::id.eq(id)))
             .execute(conn_borrow.deref_mut())
@@ -86,7 +86,7 @@ impl CartRepository for CartRepositoryImpl {
     }
 
     fn add_cart_item(&mut self, cart_item: CartItem) -> Result<CartItem, CartError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
 
         let new_cart_item = NewCartItemEntity {
             cart_id: cart_item.cart_id,
@@ -113,7 +113,7 @@ impl CartRepository for CartRepositoryImpl {
         cart_item_id: i64,
         new_quantity: i32,
     ) -> Result<CartItem, CartError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
 
         diesel::update(cart_items::table.filter(cart_items::id.eq(cart_item_id)))
             .set(cart_items::quantity.eq(new_quantity))
@@ -130,7 +130,7 @@ impl CartRepository for CartRepositoryImpl {
     }
 
     fn remove_cart_item(&mut self, cart_item_id: i64) -> Result<(), CartError> {
-        let mut conn_borrow = self.conn.borrow_mut();
+        let mut conn_borrow = self.conn.lock().unwrap();
 
         diesel::delete(cart_items::table.filter(cart_items::id.eq(cart_item_id)))
             .execute(conn_borrow.deref_mut())
