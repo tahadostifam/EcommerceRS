@@ -1490,6 +1490,7 @@ name = "restapi"
 version = "0.1.0"
 dependencies = [
  "actix-web",
+ "derive_more 2.0.1",
  "ecommercers",
  "serde",
  "serde_json",

@@ -1,32 +1,57 @@
-use core::fmt;
-
-use actix_web::ResponseError;
+use super::ErrorMessage;
+use actix_web::{HttpResponse, ResponseError, http::header::ContentType};
+use derive_more::derive::{Display, Error};
 use ecommercers::core::models::auth::AuthError;
 
-#[derive(Debug)]
-pub struct ActixAuthError(pub AuthError);
+#[derive(Debug, Display, Error)]
+pub enum HttpAuthError {
+    #[display("internal error")]
+    InternalError,
 
-impl fmt::Display for ActixAuthError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0.to_string())
+    #[display("invalid payload")]
+    InvalidPayload,
+
+    #[display("invalid credentials")]
+    InvalidCredentials,
+
+    #[display("token expired")]
+    TokenExpired,
+
+    #[display("email already exists")]
+    EmailAlreadyExists,
+}
+
+impl From<AuthError> for HttpAuthError {
+    fn from(value: AuthError) -> Self {
+        match value {
+            AuthError::InternalError => HttpAuthError::InternalError,
+            AuthError::InvalidPayload => HttpAuthError::InvalidPayload,
+            AuthError::InvalidCredentials => HttpAuthError::InvalidCredentials,
+            AuthError::TokenExpired => HttpAuthError::TokenExpired,
+            AuthError::EmailAlreadyExists => HttpAuthError::EmailAlreadyExists,
+        }
     }
 }
 
-impl ResponseError for ActixAuthError {
+impl ResponseError for HttpAuthError {
     fn status_code(&self) -> actix_web::http::StatusCode {
-        actix_web::http::StatusCode::INTERNAL_SERVER_ERROR
+        match self {
+            HttpAuthError::InternalError => actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
+            HttpAuthError::InvalidPayload => actix_web::http::StatusCode::BAD_REQUEST,
+            HttpAuthError::InvalidCredentials => actix_web::http::StatusCode::UNAUTHORIZED,
+            HttpAuthError::TokenExpired => actix_web::http::StatusCode::UNAUTHORIZED,
+            HttpAuthError::EmailAlreadyExists => actix_web::http::StatusCode::BAD_REQUEST,
+        }
     }
 
     fn error_response(&self) -> actix_web::HttpResponse<actix_web::body::BoxBody> {
-        todo!();
-        // let mut res = actix_web::HttpResponse::new(self.status_code());
-
-        // let mut buf = actix_web::web::BytesMut::new();
-        // let _ = std::write!(helpers::MutWriter(&mut buf), "{}", self);
-
-        // let mime = mime::TEXT_PLAIN_UTF_8.try_into_value().unwrap();
-        // res.headers_mut().insert(actix_web::http::header::CONTENT_TYPE, mime);
-
-        // res.set_body(actix_web::body::BoxBody::new(buf))
+        HttpResponse::build(self.status_code())
+            .insert_header(ContentType::json())
+            .body(
+                serde_json::to_string(&ErrorMessage {
+                    error: self.to_string(),
+                })
+                .unwrap(),
+            )
     }
 }

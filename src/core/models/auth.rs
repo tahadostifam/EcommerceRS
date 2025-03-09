@@ -18,9 +18,9 @@ pub struct RefreshToken {
 
 #[derive(Debug, Display)]
 pub enum AuthError {
+    InternalError,
     InvalidPayload,
     InvalidCredentials,
     TokenExpired,
-    InternalError,
     EmailAlreadyExists
 }
