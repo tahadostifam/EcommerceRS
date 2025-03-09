@@ -8,10 +8,7 @@ use crate::{
         schema::users,
     },
     core::{
-        models::{
-            auth::AuthError,
-            user::{User, UserError},
-        },
+        models::user::{User, UserError},
         ports::user_repository::UserRepository,
     },
 };
@@ -27,17 +24,24 @@ impl UserRepositoryImpl {
 }
 
 impl UserRepository for UserRepositoryImpl {
-    fn create(&mut self, email: String, password_hash: String) -> Result<User, UserError> {
+    fn create(
+        &mut self,
+        name: String,
+        email: String,
+        password_hash: String,
+    ) -> Result<User, UserError> {
         let mut conn_borrow = self.conn.borrow_mut();
 
         diesel::insert_into(users::table)
             .values(NewUserEntity {
+                name,
                 email,
                 password_hash,
             })
             .get_result::<UserEntity>(conn_borrow.deref_mut())
             .map(|entity| User {
                 id: entity.id,
+                name: entity.name,
                 email: entity.email,
                 password_hash: entity.password_hash,
                 created_at: entity.created_at,
@@ -54,6 +58,7 @@ impl UserRepository for UserRepositoryImpl {
             .first::<UserEntity>(conn_borrow.deref_mut())
             .map(|entity| User {
                 id: entity.id,
+                name: entity.name,
                 email: entity.email,
                 password_hash: entity.password_hash,
                 created_at: entity.created_at,
@@ -70,6 +75,7 @@ impl UserRepository for UserRepositoryImpl {
             .first::<UserEntity>(conn_borrow.deref_mut())
             .map(|entity| User {
                 id: entity.id,
+                name: entity.name,
                 email: entity.email,
                 password_hash: entity.password_hash,
                 created_at: entity.created_at,

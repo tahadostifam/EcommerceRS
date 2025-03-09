@@ -1,0 +1,11 @@
+[package]
+name = "restapi"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+actix-web = "4.9.0"
+
+[[bin]]
+name = "ecommercers-restapi"
+path = "./src/server.rs"

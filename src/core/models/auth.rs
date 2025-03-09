@@ -21,4 +21,5 @@ pub enum AuthError {
     InvalidCredentials,
     TokenExpired,
     InternalError,
+    EmailAlreadyExists
 }
