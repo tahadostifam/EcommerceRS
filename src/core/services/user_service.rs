@@ -18,17 +18,19 @@ use argon2::{
     password_hash::{PasswordHasher, SaltString, rand_core::OsRng},
 };
 use chrono::{Duration, NaiveDateTime, TimeDelta, Utc};
-use jsonwebtoken::{EncodingKey, Header};
+use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 
 use super::email_service::EmailService;
 
 const REFRESH_TOKEN_LENGTH: i32 = 30;
 const REFRESH_TOKEN_TTL: TimeDelta = Duration::days(30);
+const ACCESS_TOKEN_TTL: TimeDelta = Duration::minutes(10);
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccessTokenClaims {
     pub user_id: i64,
+    pub exp: i64,
 }
 
 #[derive(Clone)]
@@ -124,8 +126,49 @@ impl UserService {
         Ok((user, refresh_token, access_token))
     }
 
+    pub fn refresh_token(&mut self, refresh_token: String) -> Result<String, AuthError> {
+        let mut auth_repo: std::sync::MutexGuard<'_, dyn AuthRepository> =
+            self.auth_repo.lock().unwrap();
+
+        let payload = auth_repo
+            .validate_refresh_token(&refresh_token)
+            .map_err(|_| AuthError::InvalidCredentials)?;
+
+        Ok(self
+            .generate_access_token(payload.user_id)
+            .map_err(|_| AuthError::InternalError)?)
+    }
+
+    pub fn authorization(&mut self, access_token: String) -> Result<User, AuthError> {
+        let mut user_repo = self.user_repo.lock().unwrap();
+        let claims = self.validate_access_token(access_token)?;
+        let user = user_repo
+            .find_by_id(claims.user_id)
+            .map_err(|_| AuthError::InvalidCredentials)?;
+        Ok(user)
+    }
+
+    // Private Methods
+
+    fn validate_access_token(&self, token: String) -> Result<AccessTokenClaims, AuthError> {
+        let decoding_key = DecodingKey::from_secret(self.jwt_secret.as_bytes());
+        let validation = Validation::default();
+        let token_data =
+            jsonwebtoken::decode::<AccessTokenClaims>(&token, &decoding_key, &validation).map_err(
+                |err| {
+                    dbg!(err);
+                    AuthError::InvalidCredentials
+                },
+            )?;
+
+        Ok(token_data.claims)
+    }
+
     fn generate_access_token(&self, user_id: i64) -> jsonwebtoken::errors::Result<String> {
-        let claims = AccessTokenClaims { user_id };
+        let claims = AccessTokenClaims {
+            user_id,
+            exp: self.access_token_expires_at().and_utc().timestamp(),
+        };
 
         let header = Header::default();
         let encoding_key = EncodingKey::from_secret(self.jwt_secret.as_bytes());
@@ -134,6 +177,10 @@ impl UserService {
 
     fn refresh_token_expires_at(&self) -> NaiveDateTime {
         Utc::now().naive_utc() + REFRESH_TOKEN_TTL
+    }
+
+    fn access_token_expires_at(&self) -> NaiveDateTime {
+        Utc::now().naive_utc() + ACCESS_TOKEN_TTL
     }
 
     fn generate_refresh_token(&self) -> String {

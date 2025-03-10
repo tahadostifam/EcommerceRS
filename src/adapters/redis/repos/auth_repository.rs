@@ -1,4 +1,7 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    ops::Index,
+    sync::{Arc, Mutex},
+};
 
 use redis::Commands;
 
@@ -35,15 +38,15 @@ impl AuthRepository for AuthRepositoryImpl {
             .map_err(|_| AuthError::InvalidPayload)?;
 
         Ok(client
-            .set_ex(format!("user::{}", token), value, expires_at.and_utc().timestamp() as u64)
+            .set_ex(
+                format!("user::{}::{}", user_id, token),
+                value,
+                expires_at.and_utc().timestamp() as u64,
+            )
             .map_err(|_| AuthError::InternalError)?)
     }
 
-    fn validate_refresh_token(
-        &mut self,
-        user_id: i64,
-        token: &str,
-    ) -> Result<RefreshToken, AuthError> {
+    fn validate_refresh_token(&mut self, token: &str) -> Result<RefreshToken, AuthError> {
         let mut client = self
             .conn
             .lock()
@@ -51,28 +54,21 @@ impl AuthRepository for AuthRepositoryImpl {
             .get_connection()
             .map_err(|_| AuthError::InternalError)?;
 
-        let refresh_token_str = client
-            .hget::<String, String, String>(format!("user::{}", user_id), token.to_string())
-            .map_err(|_| AuthError::InvalidCredentials)?;
+        let pattern = format!("user::*::{}", token);
+        let keys: Vec<String> = client
+            .scan_match(pattern)
+            .map_err(|_| AuthError::InternalError)?
+            .collect();
+        
+        if let Some(key) = keys.get(0) {
+            let payload_str: String = client.get(key).map_err(|_| AuthError::InternalError)?;
 
-        let refresh_token: RefreshToken =
-            serde_json::from_str(&refresh_token_str).map_err(|_| AuthError::InvalidCredentials)?;
+            let payload: RefreshToken = serde_json::from_str(&payload_str)
+                .map_err(|_| AuthError::InvalidCredentials)?;
 
-        Ok(refresh_token)
-    }
+            return Ok(payload);
+        }
 
-    fn delete_refresh_token(&mut self, user_id: i64, token: &str) -> Result<(), AuthError> {
-        let mut client = self
-            .conn
-            .lock()
-            .unwrap()
-            .get_connection()
-            .map_err(|_| AuthError::InternalError)?;
-
-        let _ = client
-            .hdel::<String, String, String>(format!("user::{}", user_id), token.to_string())
-            .map_err(|_| AuthError::InvalidCredentials);
-
-        Ok(())
+        Err(AuthError::InvalidCredentials)
     }
 }

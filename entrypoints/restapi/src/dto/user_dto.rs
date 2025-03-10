@@ -14,9 +14,20 @@ pub struct UserLoginDTO {
     pub email: String,
     pub password: String,
 }
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct UserLoggedInDTO {
     pub user: User,
     pub refresh_token: String,
+    pub access_token: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct UserRefreshTokenDTO {
+    pub refresh_token: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct UserNewAccessTokenDTO {
     pub access_token: String,
 }
