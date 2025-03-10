@@ -1,8 +1,8 @@
 use crate::adapters;
 use crate::config::{self, Config};
+use crate::core::services::email_service::new_email_service_devel;
 use crate::core::services::user_service::{UserService, new_user_service};
 use std::sync::{Arc, Mutex};
-use std::{cell::RefCell, rc::Rc};
 
 pub struct Services {
     pub cfg: Arc<Mutex<Config>>,
@@ -44,7 +44,13 @@ pub fn bootstrap_services() -> Services {
     ));
 
     // Services
-    let user_service = new_user_service(auth_repository, user_repository);
+    let email_service = new_email_service_devel();
+    let user_service = new_user_service(
+        cfg.jwt.secret.clone(),
+        auth_repository,
+        user_repository,
+        Arc::new(Mutex::new(email_service)),
+    );
 
     println!("# EcommerceRS");
 

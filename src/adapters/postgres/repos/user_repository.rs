@@ -29,7 +29,8 @@ impl UserRepositoryImpl {
 impl UserRepository for UserRepositoryImpl {
     fn create(
         &mut self,
-        name: String,
+        first_name: String,
+        last_name: String,
         email: String,
         password_hash: String,
     ) -> Result<User, UserError> {
@@ -37,19 +38,13 @@ impl UserRepository for UserRepositoryImpl {
 
         diesel::insert_into(users::table)
             .values(NewUserEntity {
-                name,
+                first_name,
+                last_name,
                 email,
                 password_hash,
             })
             .get_result::<UserEntity>(conn_borrow.deref_mut())
-            .map(|entity| User {
-                id: entity.id,
-                name: entity.name,
-                email: entity.email,
-                password_hash: entity.password_hash,
-                created_at: entity.created_at,
-                updated_at: entity.updated_at,
-            })
+            .map(|entity| entity.to_model())
             .map_err(|err| match err {
                 diesel::result::Error::DatabaseError(kind, _) => match kind {
                     diesel::result::DatabaseErrorKind::UniqueViolation => {
@@ -67,14 +62,7 @@ impl UserRepository for UserRepositoryImpl {
         users::table
             .filter(users::email.eq(email))
             .first::<UserEntity>(conn_borrow.deref_mut())
-            .map(|entity| User {
-                id: entity.id,
-                name: entity.name,
-                email: entity.email,
-                password_hash: entity.password_hash,
-                created_at: entity.created_at,
-                updated_at: entity.updated_at,
-            })
+            .map(|entity| entity.to_model())
             .map_err(|_| UserError::UserNotFound)
     }
 
@@ -84,14 +72,7 @@ impl UserRepository for UserRepositoryImpl {
         users::table
             .filter(users::id.eq(id))
             .first::<UserEntity>(conn_borrow.deref_mut())
-            .map(|entity| User {
-                id: entity.id,
-                name: entity.name,
-                email: entity.email,
-                password_hash: entity.password_hash,
-                created_at: entity.created_at,
-                updated_at: entity.updated_at,
-            })
+            .map(|entity| entity.to_model())
             .map_err(|_| UserError::UserNotFound)
     }
 }

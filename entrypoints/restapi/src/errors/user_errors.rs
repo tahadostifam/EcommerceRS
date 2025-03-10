@@ -19,6 +19,9 @@ pub enum HttpAuthError {
 
     #[display("email already exists")]
     EmailAlreadyExists,
+
+    #[display("email not verified")]
+    EmailNotVerified,
 }
 
 impl From<AuthError> for HttpAuthError {
@@ -29,6 +32,7 @@ impl From<AuthError> for HttpAuthError {
             AuthError::InvalidCredentials => HttpAuthError::InvalidCredentials,
             AuthError::TokenExpired => HttpAuthError::TokenExpired,
             AuthError::EmailAlreadyExists => HttpAuthError::EmailAlreadyExists,
+            AuthError::EmailNotVerified => HttpAuthError::EmailNotVerified,
         }
     }
 }
@@ -41,6 +45,7 @@ impl ResponseError for HttpAuthError {
             HttpAuthError::InvalidCredentials => actix_web::http::StatusCode::UNAUTHORIZED,
             HttpAuthError::TokenExpired => actix_web::http::StatusCode::UNAUTHORIZED,
             HttpAuthError::EmailAlreadyExists => actix_web::http::StatusCode::BAD_REQUEST,
+            HttpAuthError::EmailNotVerified => actix_web::http::StatusCode::UNAUTHORIZED,
         }
     }
 

@@ -10,3 +10,6 @@ url = "postgresql://admin:admin@localhost:5432/default"
 
 [redis]
 url = "redis://127.0.0.1:6379/0"
+
+[jwt]
+secret = "secret"

@@ -11,9 +11,7 @@ pub struct Auth {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RefreshToken {
-    pub token: String,
     pub user_id: i64,
-    pub expires_at: NaiveDateTime,
 }
 
 #[derive(Debug, Display)]
@@ -22,5 +20,6 @@ pub enum AuthError {
     InvalidPayload,
     InvalidCredentials,
     TokenExpired,
-    EmailAlreadyExists
+    EmailAlreadyExists,
+    EmailNotVerified,
 }

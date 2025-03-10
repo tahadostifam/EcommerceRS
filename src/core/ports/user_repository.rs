@@ -3,7 +3,8 @@ use crate::core::models::{user::User, user::UserError};
 pub trait UserRepository: Send + Sync {
     fn create(
         &mut self,
-        name: String,
+        first_name: String,
+        last_name: String,
         email: String,
         password_hash: String,
     ) -> Result<User, UserError>;

@@ -6,11 +6,6 @@ mod errors;
 mod dto;
 mod middlewares;
 
-#[derive(Clone, Copy)]
-pub struct Sample {
-    x: i32,
-}
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let services = ecommercers::bootstrap::bootstrap_services();

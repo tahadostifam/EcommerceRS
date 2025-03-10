@@ -19,10 +19,16 @@ pub struct Redis {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Jwt {
+    pub secret: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
     pub server: Server,
     pub postgres: Postgres,
     pub redis: Redis,
+    pub jwt: Jwt,
     pub version: String,
 }
 

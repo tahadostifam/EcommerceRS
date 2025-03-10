@@ -31,15 +31,11 @@ impl AuthRepository for AuthRepositoryImpl {
             .get_connection()
             .map_err(|_| AuthError::InternalError)?;
 
-        let value = serde_json::to_string(&RefreshToken {
-            token: token.clone(),
-            user_id,
-            expires_at,
-        })
-        .map_err(|_| AuthError::InvalidPayload)?;
+        let value = serde_json::to_string(&RefreshToken { user_id })
+            .map_err(|_| AuthError::InvalidPayload)?;
 
         Ok(client
-            .hset::<String, String, String, ()>(format!("user::{}", user_id), token, value)
+            .set_ex(format!("user::{}", token), value, expires_at.and_utc().timestamp() as u64)
             .map_err(|_| AuthError::InternalError)?)
     }
 

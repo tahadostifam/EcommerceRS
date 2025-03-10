@@ -1,8 +1,12 @@
 CREATE TABLE users (
     id BIGSERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
+    profile_picture TEXT,
     password_hash TEXT NOT NULL,
+    email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    last_login TIMESTAMP NOT NULL DEFAULT NOW(),
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );

@@ -68,9 +68,13 @@ diesel::table! {
 diesel::table! {
     users (id) {
         id -> Int8,
-        name -> Text,
+        first_name -> Text,
+        last_name -> Text,
         email -> Text,
+        profile_picture -> Nullable<Text>,
         password_hash -> Text,
+        email_verified -> Bool,
+        last_login -> Timestamp,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }
