@@ -57,5 +57,6 @@ pub fn bootstrap_services() -> Services {
     Services {
         cfg: Arc::new(Mutex::new(cfg)),
         user_service: Arc::new(Mutex::new(user_service)),
+        discount_service: Arc::new(Mutex::new(discount_service)),
     }
 }

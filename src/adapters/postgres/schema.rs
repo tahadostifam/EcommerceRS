@@ -31,6 +31,26 @@ diesel::table! {
 }
 
 diesel::table! {
+    discounts (id) {
+        id -> Int8,
+        code -> Text,
+        description -> Text,
+        discount_type -> Text,
+        value -> Float8,
+        min_purchase_amount -> Nullable<Float8>,
+        max_discount_amount -> Nullable<Float8>,
+        starts_at -> Timestamp,
+        expires_at -> Nullable<Timestamp>,
+        is_active -> Bool,
+        usage_limit -> Nullable<Int4>,
+        usage_count -> Int4,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+    }
+}
+
+
+diesel::table! {
     order_items (id) {
         id -> Int8,
         order_id -> Int8,
@@ -91,6 +111,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     cart_items,
     carts,
     categories,
+    discounts,
     order_items,
     orders,
     products,

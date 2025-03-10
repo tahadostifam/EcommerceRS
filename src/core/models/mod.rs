@@ -5,3 +5,4 @@ pub mod auth;
 pub mod product;
 pub mod category;
 pub mod product_category;
+pub mod discount;
