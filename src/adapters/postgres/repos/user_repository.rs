@@ -1,4 +1,7 @@
-use std::{ops::DerefMut, sync::{Arc, Mutex}};
+use std::{
+    ops::DerefMut,
+    sync::{Arc, Mutex},
+};
 
 use diesel::{ExpressionMethods, PgConnection, RunQueryDsl, query_dsl::methods::FilterDsl};
 
@@ -47,7 +50,15 @@ impl UserRepository for UserRepositoryImpl {
                 created_at: entity.created_at,
                 updated_at: entity.updated_at,
             })
-            .map_err(|_| UserError::EmailAlreadyExists)
+            .map_err(|err| match err {
+                diesel::result::Error::DatabaseError(kind, _) => match kind {
+                    diesel::result::DatabaseErrorKind::UniqueViolation => {
+                        UserError::EmailAlreadyExists
+                    }
+                    _ => UserError::InternalError,
+                },
+                _ => UserError::InternalError,
+            })
     }
 
     fn find_by_email(&mut self, email: &str) -> Result<User, UserError> {

@@ -1,7 +1,10 @@
 use std::sync::{Arc, Mutex};
 
 use crate::core::{
-    models::{auth::AuthError, user::User},
+    models::{
+        auth::AuthError,
+        user::{User, UserError},
+    },
     ports::{auth_repository::AuthRepository, user_repository::UserRepository},
 };
 use argon2::{
@@ -41,7 +44,13 @@ impl UserService {
 
         let user = user_repo
             .create(name, email, password_hash)
-            .map_err(|_| AuthError::EmailAlreadyExists)?;
+            .map_err(|err| {
+                dbg!(err.clone());
+                match err {
+                    UserError::EmailAlreadyExists => AuthError::EmailAlreadyExists,
+                    _ => AuthError::InternalError,
+                }
+            })?;
 
         // TODO Send Verification Email
 

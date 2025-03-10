@@ -11,8 +11,9 @@ pub struct User {
     pub updated_at: NaiveDateTime,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum UserError {
+    InternalError,
     UserNotFound,
     EmailAlreadyExists,
 }
