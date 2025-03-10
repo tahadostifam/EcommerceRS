@@ -148,6 +148,14 @@ impl UserService {
         Ok(user)
     }
 
+    pub fn logout(&mut self, refresh_token: String) -> Result<(), AuthError> {
+        let mut auth_repo: std::sync::MutexGuard<'_, dyn AuthRepository> =
+            self.auth_repo.lock().unwrap();
+
+        auth_repo.remove_refresh_token(&refresh_token).map_err(|_| AuthError::InvalidCredentials)?;
+        Ok(())
+    }
+
     // Private Methods
 
     fn validate_access_token(&self, token: String) -> Result<AccessTokenClaims, AuthError> {

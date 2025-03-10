@@ -28,6 +28,11 @@ pub struct UserRefreshTokenDTO {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct UserLogoutDTO {
+    pub refresh_token: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct UserNewAccessTokenDTO {
     pub access_token: String,
 }

@@ -1,8 +1,8 @@
 use crate::{
     dto::user_dto::{
-        UserLoggedInDTO, UserLoginDTO, UserNewAccessTokenDTO, UserRefreshTokenDTO, UserRegisterDTO,
+        UserLoggedInDTO, UserLoginDTO, UserLogoutDTO, UserNewAccessTokenDTO, UserRefreshTokenDTO, UserRegisterDTO
     },
-    errors::{ErrorMessage, SimpleMessage, user_errors::HttpAuthError},
+    errors::{user_errors::HttpAuthError, ErrorMessage, SimpleMessage},
 };
 use actix_web::{
     HttpRequest, HttpResponse, Responder, Scope,
@@ -18,6 +18,7 @@ pub fn new_user_controller() -> Scope {
         .service(login_action)
         .service(refresh_token_action)
         .service(authorization_action)
+        .service(logout_action)
 }
 
 #[post("/register")]
@@ -114,4 +115,24 @@ async fn authorization_action(
     Ok(HttpResponse::BadRequest().json(ErrorMessage {
         error: "authorization header required".to_string(),
     }))
+}
+
+#[post("/logout")]
+async fn logout_action(
+    user_service_guard: web::Data<Arc<Mutex<UserService>>>,
+    data: web::Json<UserLogoutDTO>,
+) -> Result<impl Responder, HttpAuthError> {
+    let mut user_service = user_service_guard.lock().unwrap();
+
+    match user_service.logout(data.0.refresh_token) {
+        Ok(_) => Ok(HttpResponse::build(StatusCode::OK)
+            .insert_header(ContentType::json())
+            .body(
+                serde_json::to_string(&SimpleMessage {
+                    message: "logged out".to_string()
+                })
+                .unwrap(),
+            )),
+        Err(err) => Err(err.into()),
+    }
 }

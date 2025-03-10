@@ -10,4 +10,6 @@ pub trait AuthRepository: Send + Sync {
         expires_at: NaiveDateTime,
     ) -> Result<(), AuthError>;
     fn validate_refresh_token(&mut self, token: &str) -> Result<RefreshToken, AuthError>;
+    fn remove_refresh_token(&mut self, token: &str) -> Result<(), AuthError>;
+    fn terminal_user_sessions(&mut self, user_id: &str) -> Result<(), AuthError>;
 }
