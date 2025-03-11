@@ -152,7 +152,9 @@ impl UserService {
         let mut auth_repo: std::sync::MutexGuard<'_, dyn AuthRepository> =
             self.auth_repo.lock().unwrap();
 
-        auth_repo.remove_refresh_token(&refresh_token).map_err(|_| AuthError::InvalidCredentials)?;
+        auth_repo
+            .remove_refresh_token(&refresh_token)
+            .map_err(|_| AuthError::InvalidCredentials)?;
         Ok(())
     }
 
@@ -162,12 +164,8 @@ impl UserService {
         let decoding_key = DecodingKey::from_secret(self.jwt_secret.as_bytes());
         let validation = Validation::default();
         let token_data =
-            jsonwebtoken::decode::<AccessTokenClaims>(&token, &decoding_key, &validation).map_err(
-                |err| {
-                    dbg!(err);
-                    AuthError::InvalidCredentials
-                },
-            )?;
+            jsonwebtoken::decode::<AccessTokenClaims>(&token, &decoding_key, &validation)
+                .map_err(|err| AuthError::InvalidCredentials)?;
 
         Ok(token_data.claims)
     }

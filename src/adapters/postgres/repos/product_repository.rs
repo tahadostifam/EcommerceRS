@@ -36,6 +36,7 @@ impl ProductRepository for ProductRepositoryImpl {
         description: String,
         price: f64,
         stock: i32,
+        product_image: Option<String>,
     ) -> Result<Product, ProductError> {
         let mut conn_borrow = self.conn.lock().unwrap();
 
@@ -44,6 +45,7 @@ impl ProductRepository for ProductRepositoryImpl {
             description,
             price,
             stock,
+            product_image,
         };
 
         diesel::insert_into(products::table)

@@ -10,6 +10,7 @@ pub trait ProductRepository: Send + Sync {
         description: String,
         price: f64,
         stock: i32,
+        product_image: Option<String>,
     ) -> Result<Product, ProductError>;
 
     fn find_product_by_id(&mut self, id: i64) -> Result<Product, ProductError>;

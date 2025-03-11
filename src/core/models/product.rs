@@ -18,3 +18,17 @@ pub enum ProductError {
     InvalidData,
     DatabaseError,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Variation {
+    pub id: i64,
+    pub category_id: i64,
+    pub name: String, 
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct VariationOption {
+    pub id: i64,
+    pub variation_id: i64,
+    pub value: String, 
+}
