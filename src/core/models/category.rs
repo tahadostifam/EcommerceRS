@@ -6,14 +6,15 @@ pub struct Category {
     pub id: i64,
     pub name: String,
     pub description: String,
+    pub parent_id: Option<i64>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
 
 #[derive(Debug)]
 pub enum CategoryError {
+    InternalError,
     NotFound,
     InvalidData,
-    DatabaseError,
-    Conflict,
+    CategoryAlreadyExist,
 }

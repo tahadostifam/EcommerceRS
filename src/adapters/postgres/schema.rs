@@ -25,6 +25,7 @@ diesel::table! {
         id -> Int8,
         name -> Text,
         description -> Text,
+        parent_id -> Nullable<Int8>,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }

@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use diesel::prelude::*;
 use diesel::{ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl};
 
-use crate::adapters::postgres::entities::category::CategoryEntity;
+use crate::adapters::postgres::entities::category::{CategoryEntity, NewCategoryEntity};
 use crate::core::ports::category_repository::CategoryRepository;
 use crate::{
     adapters::postgres::schema::categories,
@@ -22,26 +22,23 @@ impl CategoryRepositoryImpl {
 }
 
 impl CategoryRepository for CategoryRepositoryImpl {
-    fn create_category(&mut self, category: Category) -> Result<Category, CategoryError> {
+    fn create_category(
+        &mut self,
+        name: String,
+        description: String,
+        parent_id: Option<i64>,
+    ) -> Result<Category, CategoryError> {
         let mut conn_borrow = self.conn.lock().unwrap();
 
         diesel::insert_into(categories::table)
-            .values(CategoryEntity {
-                id: category.id,
-                name: category.name,
-                description: category.description,
-                created_at: category.created_at,
-                updated_at: category.updated_at,
+            .values(NewCategoryEntity {
+                name,
+                description,
+                parent_id,
             })
             .get_result::<CategoryEntity>(conn_borrow.deref_mut())
-            .map(|entity| Category {
-                id: entity.id,
-                name: entity.name,
-                description: entity.description,
-                created_at: entity.created_at,
-                updated_at: entity.updated_at,
-            })
-            .map_err(|_| CategoryError::DatabaseError)
+            .map(|entity| entity.to_model())
+            .map_err(|_| CategoryError::InternalError)
     }
 
     fn find_category_by_id(&mut self, id: i64) -> Result<Category, CategoryError> {
@@ -50,13 +47,7 @@ impl CategoryRepository for CategoryRepositoryImpl {
         categories::table
             .filter(categories::id.eq(id))
             .first::<CategoryEntity>(conn_borrow.deref_mut())
-            .map(|entity| Category {
-                id: entity.id,
-                name: entity.name,
-                description: entity.description,
-                created_at: entity.created_at,
-                updated_at: entity.updated_at,
-            })
+            .map(|entity| entity.to_model())
             .map_err(|_| CategoryError::NotFound)
     }
 
@@ -68,34 +59,29 @@ impl CategoryRepository for CategoryRepositoryImpl {
             .map(|entities| {
                 entities
                     .into_iter()
-                    .map(|entity| Category {
-                        id: entity.id,
-                        name: entity.name,
-                        description: entity.description,
-                        created_at: entity.created_at,
-                        updated_at: entity.updated_at,
-                    })
+                    .map(|entity| entity.to_model())
                     .collect()
             })
-            .map_err(|_| CategoryError::DatabaseError)
+            .map_err(|_| CategoryError::InternalError)
     }
 
-    fn update_category(&mut self, category: Category) -> Result<Category, CategoryError> {
+    fn update_category(
+        &mut self,
+        category_id: i64,
+        new_name: String,
+        new_description: String,
+        new_parent_id: Option<i64>,
+    ) -> Result<Category, CategoryError> {
         let mut conn_borrow = self.conn.lock().unwrap();
 
-        diesel::update(categories::table.filter(categories::id.eq(category.id)))
+        diesel::update(categories::table.filter(categories::id.eq(category_id)))
             .set((
-                categories::name.eq(category.name),
-                categories::description.eq(category.description),
+                categories::name.eq(new_name),
+                categories::description.eq(new_description),
+                categories::parent_id.eq(new_parent_id),
             ))
             .get_result::<CategoryEntity>(conn_borrow.deref_mut())
-            .map(|entity| Category {
-                id: entity.id,
-                name: entity.name,
-                description: entity.description,
-                created_at: entity.created_at,
-                updated_at: entity.updated_at,
-            })
+            .map(|entity| entity.to_model())
             .map_err(|_| CategoryError::NotFound)
     }
 
@@ -111,10 +97,10 @@ impl CategoryRepository for CategoryRepositoryImpl {
                     Ok(())
                 }
             })
-            .map_err(|_| CategoryError::DatabaseError)?
+            .map_err(|_| CategoryError::InternalError)?
     }
 
-    fn find_categories_by_name(&mut self, name: &str) -> Result<Vec<Category>, CategoryError> {
+    fn find_categories_by_name(&mut self, name: String) -> Result<Vec<Category>, CategoryError> {
         let mut conn_borrow = self.conn.lock().unwrap();
 
         categories::table
@@ -123,15 +109,9 @@ impl CategoryRepository for CategoryRepositoryImpl {
             .map(|entities| {
                 entities
                     .into_iter()
-                    .map(|entity| Category {
-                        id: entity.id,
-                        name: entity.name,
-                        description: entity.description,
-                        created_at: entity.created_at,
-                        updated_at: entity.updated_at,
-                    })
+                    .map(|entity| entity.to_model())
                     .collect()
             })
-            .map_err(|_| CategoryError::DatabaseError)
+            .map_err(|_| CategoryError::InternalError)
     }
 }

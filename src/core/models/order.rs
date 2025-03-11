@@ -68,6 +68,5 @@ pub enum OrderError {
     NotFound,
     InvalidData,
     DatabaseError,
-    Conflict,
     InvalidStatusTransition,
 }

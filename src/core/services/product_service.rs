@@ -73,4 +73,8 @@ impl ProductService {
         product_repo.delete_product(id)?;
         Ok(())
     }
+
+
+    // TODO Complete variations
+    // TODO Complete variation options
 }

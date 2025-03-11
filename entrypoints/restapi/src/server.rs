@@ -1,9 +1,12 @@
 use actix_web::{App, HttpServer, web};
-use controllers::{product_controller::new_product_controller, user_controller::new_user_controller};
+use controllers::{
+    category_controller::new_category_controller, product_controller::new_product_controller,
+    user_controller::new_user_controller,
+};
 
 mod controllers;
-mod errors;
 mod dto;
+mod errors;
 mod middlewares;
 
 #[actix_web::main]
@@ -18,8 +21,10 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(web::Data::new(services.user_service.clone()))
             .app_data(web::Data::new(services.product_service.clone()))
+            .app_data(web::Data::new(services.category_service.clone()))
             .service(new_user_controller())
             .service(new_product_controller())
+            .service(new_category_controller())
     })
     .bind(endpoint_addr)
     .unwrap()
