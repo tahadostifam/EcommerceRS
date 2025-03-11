@@ -36,7 +36,6 @@ impl ProductService {
         product_image: Option<String>,
     ) -> Result<Product, ProductError> {
         let mut product_repo = self.product_repo.lock().unwrap();
-
         let product =
             product_repo.create_product(name, description, price, stock, product_image)?;
         Ok(product)
@@ -53,7 +52,6 @@ impl ProductService {
     ) -> Result<Product, ProductError> {
         let mut product_repo: std::sync::MutexGuard<'_, dyn ProductRepository> =
             self.product_repo.lock().unwrap();
-
         let product = product_repo.update_product(
             id,
             new_name,
@@ -64,5 +62,15 @@ impl ProductService {
         )?;
         
         Ok(product)
+    }
+
+    pub fn delete(
+        &mut self,
+        id: i64,
+    ) -> Result<(), ProductError> {
+        let mut product_repo: std::sync::MutexGuard<'_, dyn ProductRepository> =
+            self.product_repo.lock().unwrap();
+        product_repo.delete_product(id)?;
+        Ok(())
     }
 }

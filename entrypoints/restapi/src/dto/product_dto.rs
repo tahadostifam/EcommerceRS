@@ -41,3 +41,8 @@ pub struct ProductGetDTO {
 pub struct ProductSearchDTO {
     pub search: String,
 }
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct ProductDeleteDTO {
+    pub product_id: i64,
+}
