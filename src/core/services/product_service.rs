@@ -62,6 +62,7 @@ impl ProductService {
             new_stock,
             new_product_image,
         )?;
+        
         Ok(product)
     }
 }

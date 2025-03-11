@@ -69,12 +69,9 @@ impl UserService {
 
         let user = user_repo
             .create(first_name, last_name, email, password_hash)
-            .map_err(|err| {
-                dbg!(err.clone());
-                match err {
-                    UserError::EmailAlreadyExists => AuthError::EmailAlreadyExists,
-                    _ => AuthError::InternalError,
-                }
+            .map_err(|err| match err {
+                UserError::EmailAlreadyExists => AuthError::EmailAlreadyExists,
+                _ => AuthError::InternalError,
             })?;
 
         let email_context: HashMap<String, String> = HashMap::new();
