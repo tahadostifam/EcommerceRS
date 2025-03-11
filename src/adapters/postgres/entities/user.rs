@@ -1,4 +1,7 @@
-use crate::{adapters::postgres::schema::*, core::models::user::User};
+use crate::{
+    adapters::postgres::schema::*,
+    core::models::user::{User, UserRole},
+};
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
@@ -13,6 +16,7 @@ pub struct UserEntity {
     pub profile_picture: Option<String>,
     pub password_hash: String,
     pub email_verified: bool,
+    pub user_role: String,
     pub last_login: NaiveDateTime,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
@@ -31,6 +35,7 @@ impl UserEntity {
             last_login: self.last_login,
             created_at: self.created_at,
             updated_at: self.updated_at,
+            user_role: UserRole::try_from(self.user_role.clone()).unwrap(),
         }
     }
 }

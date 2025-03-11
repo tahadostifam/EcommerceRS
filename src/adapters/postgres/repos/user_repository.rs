@@ -11,7 +11,7 @@ use crate::{
         schema::users,
     },
     core::{
-        models::user::{User, UserError},
+        models::user::{User, UserError, UserRole},
         ports::user_repository::UserRepository,
     },
 };
@@ -74,5 +74,12 @@ impl UserRepository for UserRepositoryImpl {
             .first::<UserEntity>(conn_borrow.deref_mut())
             .map(|entity| entity.to_model())
             .map_err(|_| UserError::UserNotFound)
+    }
+    
+    fn has_role(&mut self, user_id: i64, roles: Vec<UserRole>) -> bool {
+        match self.find_by_id(user_id) {
+            Ok(user) => roles.contains(&user.user_role),
+            Err(_) => false,
+        }
     }
 }

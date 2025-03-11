@@ -1,6 +1,6 @@
 use diesel::{pg::Pg, prelude::*};
 use chrono::NaiveDateTime;
-use crate::adapters::postgres::schema::*;
+use crate::{adapters::postgres::schema::*, core::models::product::Product};
 
 #[derive(Debug, Selectable, Queryable, Insertable)]
 #[diesel(table_name = products)]
@@ -25,6 +25,21 @@ pub struct NewProductEntity {
     pub price: f64,
     pub stock: i32,
     pub product_image: Option<String>,
+}
+
+impl ProductEntity {
+    pub fn to_model(&self) -> Product {
+        Product {
+            id: self.id,
+            name: self.name.clone(),
+            description: self.description.clone(),
+            price: self.price,
+            stock: self.stock,
+            product_image: self.product_image.clone(),
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+        }
+    }
 }
 
 #[derive(Debug, Identifiable, Selectable, Queryable, Insertable)]

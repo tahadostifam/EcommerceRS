@@ -1,5 +1,6 @@
 use serde::Serialize;
 pub mod user_errors;
+pub mod product_errors;
 
 #[derive(Debug, Serialize)]
 pub(crate) struct ErrorMessage {

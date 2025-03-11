@@ -75,6 +75,7 @@ diesel::table! {
         profile_picture -> Nullable<Text>,
         password_hash -> Text,
         email_verified -> Bool,
+        user_role -> Text,
         last_login -> Timestamp,
         created_at -> Timestamp,
         updated_at -> Timestamp,

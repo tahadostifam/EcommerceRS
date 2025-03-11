@@ -5,7 +5,7 @@ impl From<diesel::result::Error> for ProductError {
         match error {
             diesel::result::Error::NotFound => ProductError::NotFound,
             diesel::result::Error::InvalidCString(_) => ProductError::InvalidData,
-            _ => ProductError::DatabaseError, 
+            _ => ProductError::InternalError, 
         }
     }
 }

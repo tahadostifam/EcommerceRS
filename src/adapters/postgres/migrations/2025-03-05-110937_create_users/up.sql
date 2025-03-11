@@ -6,6 +6,7 @@ CREATE TABLE users (
     profile_picture TEXT,
     password_hash TEXT NOT NULL,
     email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    user_role TEXT NOT NULL DEFAULT 'user',
     last_login TIMESTAMP NOT NULL DEFAULT NOW(),
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()

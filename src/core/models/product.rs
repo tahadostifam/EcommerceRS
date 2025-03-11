@@ -8,15 +8,17 @@ pub struct Product {
     pub description: String,
     pub price: f64,
     pub stock: i32,
+    pub product_image: Option<String>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
 
 #[derive(Debug)]
 pub enum ProductError {
+    InternalError,
     NotFound,
     InvalidData,
-    DatabaseError,
+    PermissionDenied
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

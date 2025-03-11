@@ -28,6 +28,7 @@ pub trait ProductRepository: Send + Sync {
         new_description: String,
         new_price: f64,
         new_stock: i32,
+        new_product_image: Option<String>
     ) -> Result<Product, ProductError>;
 
     fn update_product_stock(&mut self, id: i64, new_stock: i32) -> Result<Product, ProductError>;

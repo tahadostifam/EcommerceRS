@@ -51,15 +51,7 @@ impl ProductRepository for ProductRepositoryImpl {
         diesel::insert_into(products::table)
             .values(&entity)
             .get_result::<ProductEntity>(conn_borrow.deref_mut())
-            .map(|entity| Product {
-                id: entity.id,
-                name: entity.name,
-                description: entity.description,
-                price: entity.price,
-                stock: entity.stock,
-                created_at: entity.created_at,
-                updated_at: entity.updated_at,
-            })
+            .map(|entity| entity.to_model())
             .map_err(Into::into)
     }
 
@@ -69,15 +61,7 @@ impl ProductRepository for ProductRepositoryImpl {
         products::table
             .filter(products::id.eq(id))
             .first::<ProductEntity>(conn_borrow.deref_mut())
-            .map(|entity| Product {
-                id: entity.id,
-                name: entity.name,
-                description: entity.description,
-                price: entity.price,
-                stock: entity.stock,
-                created_at: entity.created_at,
-                updated_at: entity.updated_at,
-            })
+            .map(|entity| entity.to_model())
             .map_err(Into::into)
     }
 
@@ -89,15 +73,7 @@ impl ProductRepository for ProductRepositoryImpl {
             .map(|entities| {
                 entities
                     .into_iter()
-                    .map(|entity| Product {
-                        id: entity.id,
-                        name: entity.name,
-                        description: entity.description,
-                        price: entity.price,
-                        stock: entity.stock,
-                        created_at: entity.created_at,
-                        updated_at: entity.updated_at,
-                    })
+                    .map(|entity| entity.to_model())
                     .collect()
             })
             .map_err(Into::into)
@@ -115,7 +91,7 @@ impl ProductRepository for ProductRepositoryImpl {
                     Ok(())
                 }
             })
-            .map_err(|_| ProductError::DatabaseError)?
+            .map_err(|_| ProductError::InternalError)?
     }
 
     fn find_products_by_name(&mut self, name: String) -> Result<Vec<Product>, ProductError> {
@@ -127,15 +103,7 @@ impl ProductRepository for ProductRepositoryImpl {
             .map(|entities| {
                 entities
                     .into_iter()
-                    .map(|entity| Product {
-                        id: entity.id,
-                        name: entity.name,
-                        description: entity.description,
-                        price: entity.price,
-                        stock: entity.stock,
-                        created_at: entity.created_at,
-                        updated_at: entity.updated_at,
-                    })
+                    .map(|entity| entity.to_model())
                     .collect()
             })
             .map_err(Into::into)
@@ -148,6 +116,7 @@ impl ProductRepository for ProductRepositoryImpl {
         new_description: String,
         new_price: f64,
         new_stock: i32,
+        new_product_image: Option<String>,
     ) -> Result<Product, ProductError> {
         let mut conn_borrow = self.conn.lock().unwrap();
 
@@ -157,17 +126,10 @@ impl ProductRepository for ProductRepositoryImpl {
                 products::description.eq(new_description),
                 products::price.eq(new_price),
                 products::stock.eq(new_stock),
+                products::product_image.eq(new_product_image),
             ))
             .get_result::<ProductEntity>(conn_borrow.deref_mut())
-            .map(|entity| Product {
-                id: entity.id,
-                name: entity.name,
-                description: entity.description,
-                price: entity.price,
-                stock: entity.stock,
-                created_at: entity.created_at,
-                updated_at: entity.updated_at,
-            })
+            .map(|entity| entity.to_model())
             .map_err(Into::into)
     }
 
@@ -177,15 +139,7 @@ impl ProductRepository for ProductRepositoryImpl {
         diesel::update(products::table.filter(products::id.eq(id)))
             .set(products::stock.eq(new_stock))
             .get_result::<ProductEntity>(conn_borrow.deref_mut())
-            .map(|entity| Product {
-                id: entity.id,
-                name: entity.name,
-                description: entity.description,
-                price: entity.price,
-                stock: entity.stock,
-                created_at: entity.created_at,
-                updated_at: entity.updated_at,
-            })
+            .map(|entity| entity.to_model())
             .map_err(Into::into)
     }
 }

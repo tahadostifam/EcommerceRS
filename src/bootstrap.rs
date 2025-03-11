@@ -1,12 +1,14 @@
 use crate::adapters;
 use crate::config::{self, Config};
 use crate::core::services::email_service::new_email_service_devel;
+use crate::core::services::product_service::{new_product_service, ProductService};
 use crate::core::services::user_service::{UserService, new_user_service};
 use std::sync::{Arc, Mutex};
 
 pub struct Services {
     pub cfg: Arc<Mutex<Config>>,
     pub user_service: Arc<Mutex<UserService>>,
+    pub product_service: Arc<Mutex<ProductService>>,
 }
 
 pub fn bootstrap_services() -> Services {
@@ -51,11 +53,13 @@ pub fn bootstrap_services() -> Services {
         user_repository,
         Arc::new(Mutex::new(email_service)),
     );
+    let product_service = new_product_service(product_repository);
 
     println!("# EcommerceRS");
 
     Services {
         cfg: Arc::new(Mutex::new(cfg)),
         user_service: Arc::new(Mutex::new(user_service)),
+        product_service: Arc::new(Mutex::new(product_service))
     }
 }

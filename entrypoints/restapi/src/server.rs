@@ -1,5 +1,5 @@
 use actix_web::{App, HttpServer, web};
-use controllers::user_controller::new_user_controller;
+use controllers::{product_controller::new_product_controller, user_controller::new_user_controller};
 
 mod controllers;
 mod errors;
@@ -17,7 +17,9 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(services.user_service.clone()))
+            .app_data(web::Data::new(services.product_service.clone()))
             .service(new_user_controller())
+            .service(new_product_controller())
     })
     .bind(endpoint_addr)
     .unwrap()

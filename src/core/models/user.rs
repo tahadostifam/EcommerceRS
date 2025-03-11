@@ -13,6 +13,7 @@ pub struct User {
     pub password_hash: String,
 
     pub email_verified: bool,
+    pub user_role: UserRole,
     pub last_login: NaiveDateTime,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
@@ -23,4 +24,24 @@ pub enum UserError {
     InternalError,
     UserNotFound,
     EmailAlreadyExists,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum UserRole {
+    User,
+    Manager,
+    Admin,
+}
+
+impl TryFrom<String> for UserRole {
+    type Error = UserError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Ok(match value.as_str() {
+            "user" => UserRole::User,
+            "manager" => UserRole::Manager,
+            "admin" => UserRole::Admin,
+            _ => return Err(UserError::InternalError),
+        })
+    }
 }
