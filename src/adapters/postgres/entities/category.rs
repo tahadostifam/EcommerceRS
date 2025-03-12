@@ -2,7 +2,7 @@ use crate::{adapters::postgres::schema::*, core::models::category::Category};
 use chrono::NaiveDateTime;
 use diesel::{pg::Pg, prelude::*};
 
-#[derive(Debug, Selectable, Queryable, Insertable)]
+#[derive(Debug, Clone, Selectable, Queryable, Insertable)]
 #[diesel(table_name = categories)]
 #[diesel(check_for_backend(Pg))]
 pub struct CategoryEntity {
@@ -15,12 +15,12 @@ pub struct CategoryEntity {
 }
 
 impl CategoryEntity {
-    pub fn to_model(&self) -> Category {
+    pub fn to_model(&self, parent: Option<Box<Category>>) -> Category {
         Category {
             id: self.id,
             name: self.name.clone(),
             description: self.description.clone(),
-            parent_id: self.parent_id,
+            parent,
             created_at: self.created_at,
             updated_at: self.updated_at,
         }

@@ -27,8 +27,8 @@ impl CategoryService {
 
     pub fn get_all(&mut self) -> Result<Vec<Category>, CategoryError> {
         let mut category_repo = self.category_repo.lock().unwrap();
-        // let categories: Vec<Category> = category_repo.;
-        Ok(vec![])
+        let categories: Vec<Category> = category_repo.find_all_categories()?;
+        Ok(categories)
     }
 
     pub fn get(&mut self, category_id: i64) -> Result<Category, CategoryError> {

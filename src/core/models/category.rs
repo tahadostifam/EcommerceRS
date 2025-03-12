@@ -6,7 +6,7 @@ pub struct Category {
     pub id: i64,
     pub name: String,
     pub description: String,
-    pub parent_id: Option<i64>,
+    pub parent: Option<Box<Category>>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }

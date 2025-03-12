@@ -28,41 +28,75 @@ impl CategoryRepository for CategoryRepositoryImpl {
         description: String,
         parent_id: Option<i64>,
     ) -> Result<Category, CategoryError> {
-        let mut conn_borrow = self.conn.lock().unwrap();
+        let mut parent: Option<Box<Category>> = None;
+        if let Some(parent_id) = parent_id {
+            let records = self.find_all_categories()?;
+            let record = records.iter().find(|&key| key.id == parent_id);
+            if let Some(record) = record {
+                parent = Some(Box::new(record.clone()));
+            }
+        }
 
-        diesel::insert_into(categories::table)
+        let mut conn_borrow = self.conn.lock().unwrap();
+        Ok(diesel::insert_into(categories::table)
             .values(NewCategoryEntity {
                 name,
                 description,
                 parent_id,
             })
             .get_result::<CategoryEntity>(conn_borrow.deref_mut())
-            .map(|entity| entity.to_model())
-            .map_err(|_| CategoryError::InternalError)
+            .map(|entity| entity.to_model(parent))
+            .map_err(|_| CategoryError::InternalError)?)
     }
 
     fn find_category_by_id(&mut self, id: i64) -> Result<Category, CategoryError> {
-        let mut conn_borrow = self.conn.lock().unwrap();
+        // let mut conn_borrow = self.conn.lock().unwrap();
 
-        categories::table
-            .filter(categories::id.eq(id))
-            .first::<CategoryEntity>(conn_borrow.deref_mut())
-            .map(|entity| entity.to_model())
-            .map_err(|_| CategoryError::NotFound)
+        // categories::table
+        //     .filter(categories::id.eq(id))
+        //     .first::<CategoryEntity>(conn_borrow.deref_mut())
+        //     .map(|entity| entity.to_model())
+        //     .map_err(|_| CategoryError::NotFound)
+        todo!();
+    }   
+
+    fn find_categories_by_name(&mut self, name: String) -> Result<Vec<Category>, CategoryError> {
+        // let mut conn_borrow = self.conn.lock().unwrap();
+
+        // categories::table
+        //     .filter(categories::name.like(format!("%{}%", name)))
+        //     .load::<CategoryEntity>(conn_borrow.deref_mut())
+        //     .map(|entities| {
+        //         entities
+        //             .into_iter()
+        //             .map(|entity| entity.to_model())
+        //             .collect()
+        //     })
+        //     .map_err(|_| CategoryError::InternalError)
+        todo!();
     }
 
     fn find_all_categories(&mut self) -> Result<Vec<Category>, CategoryError> {
         let mut conn_borrow = self.conn.lock().unwrap();
 
-        categories::table
+        let records = categories::table
             .load::<CategoryEntity>(conn_borrow.deref_mut())
-            .map(|entities| {
-                entities
-                    .into_iter()
-                    .map(|entity| entity.to_model())
-                    .collect()
-            })
-            .map_err(|_| CategoryError::InternalError)
+            .map(|entities| entities)
+            .map_err(|_| CategoryError::InternalError)?;
+
+        let categories: Vec<Category> = records.clone().into_iter().map(|entity| {
+            let mut parent: Option<Box<Category>> = None;
+            if let Some(parent_id) = entity.parent_id.clone() {
+                let record = records.iter().find(|&key| key.id == parent_id);
+                if let Some(record) = record {
+                    parent = Some(Box::new(record.to_model(None))); // FIXME
+                }
+            }
+
+            entity.to_model(parent)
+        }).collect();
+
+        Ok(categories)
     }
 
     fn update_category(
@@ -72,17 +106,18 @@ impl CategoryRepository for CategoryRepositoryImpl {
         new_description: String,
         new_parent_id: Option<i64>,
     ) -> Result<Category, CategoryError> {
-        let mut conn_borrow = self.conn.lock().unwrap();
+        // let mut conn_borrow = self.conn.lock().unwrap();
 
-        diesel::update(categories::table.filter(categories::id.eq(category_id)))
-            .set((
-                categories::name.eq(new_name),
-                categories::description.eq(new_description),
-                categories::parent_id.eq(new_parent_id),
-            ))
-            .get_result::<CategoryEntity>(conn_borrow.deref_mut())
-            .map(|entity| entity.to_model())
-            .map_err(|_| CategoryError::NotFound)
+        // diesel::update(categories::table.filter(categories::id.eq(category_id)))
+        //     .set((
+        //         categories::name.eq(new_name),
+        //         categories::description.eq(new_description),
+        //         categories::parent_id.eq(new_parent_id),
+        //     ))
+        //     .get_result::<CategoryEntity>(conn_borrow.deref_mut())
+        //     .map(|entity| entity.to_model())
+        //     .map_err(|_| CategoryError::NotFound)
+        todo!();
     }
 
     fn delete_category(&mut self, id: i64) -> Result<(), CategoryError> {
@@ -98,20 +133,5 @@ impl CategoryRepository for CategoryRepositoryImpl {
                 }
             })
             .map_err(|_| CategoryError::InternalError)?
-    }
-
-    fn find_categories_by_name(&mut self, name: String) -> Result<Vec<Category>, CategoryError> {
-        let mut conn_borrow = self.conn.lock().unwrap();
-
-        categories::table
-            .filter(categories::name.like(format!("%{}%", name)))
-            .load::<CategoryEntity>(conn_borrow.deref_mut())
-            .map(|entities| {
-                entities
-                    .into_iter()
-                    .map(|entity| entity.to_model())
-                    .collect()
-            })
-            .map_err(|_| CategoryError::InternalError)
     }
 }
