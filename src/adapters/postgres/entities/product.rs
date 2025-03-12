@@ -1,6 +1,6 @@
-use diesel::{pg::Pg, prelude::*};
+use crate::{adapters::postgres::schema::*, core::models::{category::Category, product::Product}};
 use chrono::NaiveDateTime;
-use crate::{adapters::postgres::schema::*, core::models::product::Product};
+use diesel::{pg::Pg, prelude::*};
 
 #[derive(Debug, Selectable, Queryable, Insertable)]
 #[diesel(table_name = products)]
@@ -14,6 +14,7 @@ pub struct ProductEntity {
     pub product_image: Option<String>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
+    pub category_id: Option<i64>,
 }
 
 #[derive(Debug, Insertable, AsChangeset)]
@@ -25,10 +26,11 @@ pub struct NewProductEntity {
     pub price: f64,
     pub stock: i32,
     pub product_image: Option<String>,
+    pub category_id: Option<i64>,
 }
 
 impl ProductEntity {
-    pub fn to_model(&self) -> Product {
+    pub fn to_model(&self, category: Option<Category>) -> Product {
         Product {
             id: self.id,
             name: self.name.clone(),
@@ -36,6 +38,7 @@ impl ProductEntity {
             price: self.price,
             stock: self.stock,
             product_image: self.product_image.clone(),
+            category,
             created_at: self.created_at,
             updated_at: self.updated_at,
         }
@@ -48,7 +51,7 @@ impl ProductEntity {
 pub struct Variation {
     pub id: i64,
     pub category_id: i64,
-    pub name: String, 
+    pub name: String,
 }
 
 #[derive(Debug, Identifiable, Selectable, Queryable, Insertable)]
@@ -57,5 +60,5 @@ pub struct Variation {
 pub struct VariationOption {
     pub id: i64,
     pub variation_id: i64,
-    pub value: String, 
+    pub value: String,
 }

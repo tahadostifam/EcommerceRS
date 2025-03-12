@@ -14,8 +14,11 @@ pub enum HttpProductError {
     #[display("invalid data")]
     InvalidData,
 
+    #[display("invalid category")]
+    InvalidCategory,
+
     #[display("permission denied")]
-    PermissionDenied
+    PermissionDenied,
 }
 
 impl From<ProductError> for HttpProductError {
@@ -25,6 +28,7 @@ impl From<ProductError> for HttpProductError {
             ProductError::NotFound => HttpProductError::NotFound,
             ProductError::InvalidData => HttpProductError::InvalidData,
             ProductError::PermissionDenied => HttpProductError::PermissionDenied,
+            ProductError::InvalidCategory => HttpProductError::InvalidCategory,
         }
     }
 }
@@ -35,6 +39,7 @@ impl ResponseError for HttpProductError {
             HttpProductError::InternalError => actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
             HttpProductError::NotFound => actix_web::http::StatusCode::BAD_REQUEST,
             HttpProductError::InvalidData => actix_web::http::StatusCode::BAD_REQUEST,
+            HttpProductError::InvalidCategory => actix_web::http::StatusCode::BAD_REQUEST,
             HttpProductError::PermissionDenied => actix_web::http::StatusCode::UNAUTHORIZED,
         }
     }

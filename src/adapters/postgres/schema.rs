@@ -64,6 +64,7 @@ diesel::table! {
         product_image -> Nullable<Text>,
         created_at -> Timestamp,
         updated_at -> Timestamp,
+        category_id -> Nullable<Int8>,
     }
 }
 
@@ -105,6 +106,7 @@ diesel::joinable!(carts -> users (user_id));
 diesel::joinable!(order_items -> orders (order_id));
 diesel::joinable!(order_items -> products (product_id));
 diesel::joinable!(orders -> users (user_id));
+diesel::joinable!(products -> categories (category_id));
 diesel::joinable!(variation_options -> variations (variation_id));
 diesel::joinable!(variations -> categories (category_id));
 

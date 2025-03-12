@@ -11,6 +11,7 @@ pub trait ProductRepository: Send + Sync {
         price: f64,
         stock: i32,
         product_image: Option<String>,
+        category_id: Option<i64>,
     ) -> Result<Product, ProductError>;
 
     fn find_product_by_id(&mut self, id: i64) -> Result<Product, ProductError>;
@@ -28,10 +29,9 @@ pub trait ProductRepository: Send + Sync {
         new_description: String,
         new_price: f64,
         new_stock: i32,
-        new_product_image: Option<String>
+        new_product_image: Option<String>,
+        new_category_id: Option<i64>,
     ) -> Result<Product, ProductError>;
-
-    fn update_product_stock(&mut self, id: i64, new_stock: i32) -> Result<Product, ProductError>;
 }
 
 pub trait ProductCategoryRepository {

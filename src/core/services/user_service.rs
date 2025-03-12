@@ -1,17 +1,9 @@
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex},
-};
-
-use crate::{
-    config::Config,
-    core::{
-        models::{
-            auth::AuthError,
-            user::{User, UserError},
-        },
-        ports::{auth_repository::AuthRepository, user_repository::UserRepository},
+use crate::core::{
+    models::{
+        auth::AuthError,
+        user::{User, UserError},
     },
+    ports::{auth_repository::AuthRepository, user_repository::UserRepository},
 };
 use argon2::{
     Argon2, PasswordHash, PasswordVerifier,
@@ -20,6 +12,10 @@ use argon2::{
 use chrono::{Duration, NaiveDateTime, TimeDelta, Utc};
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 
 use super::email_service::EmailService;
 
@@ -162,7 +158,7 @@ impl UserService {
         let validation = Validation::default();
         let token_data =
             jsonwebtoken::decode::<AccessTokenClaims>(&token, &decoding_key, &validation)
-                .map_err(|err| AuthError::InvalidCredentials)?;
+                .map_err(|_| AuthError::InvalidCredentials)?;
 
         Ok(token_data.claims)
     }

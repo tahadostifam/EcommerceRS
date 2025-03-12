@@ -34,10 +34,11 @@ impl ProductService {
         price: f64,
         stock: i32,
         product_image: Option<String>,
+        category_id: Option<i64>
     ) -> Result<Product, ProductError> {
         let mut product_repo = self.product_repo.lock().unwrap();
         let product =
-            product_repo.create_product(name, description, price, stock, product_image)?;
+            product_repo.create_product(name, description, price, stock, product_image, category_id)?;
         Ok(product)
     }
 
@@ -49,9 +50,11 @@ impl ProductService {
         new_price: f64,
         new_stock: i32,
         new_product_image: Option<String>,
+        new_category_id: Option<i64>
     ) -> Result<Product, ProductError> {
         let mut product_repo: std::sync::MutexGuard<'_, dyn ProductRepository> =
             self.product_repo.lock().unwrap();
+            
         let product = product_repo.update_product(
             id,
             new_name,
@@ -59,6 +62,7 @@ impl ProductService {
             new_price,
             new_stock,
             new_product_image,
+            new_category_id
         )?;
         
         Ok(product)

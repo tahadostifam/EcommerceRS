@@ -35,6 +35,7 @@ async fn create_action(
         data.0.price,
         data.0.stock,
         data.0.product_image,
+        data.0.category_id
     )?;
 
     Ok(HttpResponse::build(StatusCode::CREATED)
@@ -85,6 +86,7 @@ async fn update_action(
         data.0.price,
         data.0.stock,
         data.0.product_image,
+        data.0.category_id,
     )?;
     Ok(HttpResponse::build(StatusCode::CREATED)
         .insert_header(ContentType::json())

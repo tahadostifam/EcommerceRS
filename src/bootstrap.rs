@@ -35,8 +35,17 @@ pub fn bootstrap_services() -> Services {
         adapters::postgres::repos::user_repository::UserRepositoryImpl::new(pg_conn.clone()),
     ));
 
+    let category_repository = Arc::new(Mutex::new(
+        adapters::postgres::repos::category_repository::CategoryRepositoryImpl::new(
+            pg_conn.clone(),
+        ),
+    ));
+
     let product_repository = Arc::new(Mutex::new(
-        adapters::postgres::repos::product_repository::ProductRepositoryImpl::new(pg_conn.clone()),
+        adapters::postgres::repos::product_repository::ProductRepositoryImpl::new(
+            pg_conn.clone(),
+            category_repository.clone(),
+        ),
     ));
 
     let cart_repository = Arc::new(Mutex::new(
@@ -45,12 +54,6 @@ pub fn bootstrap_services() -> Services {
 
     let order_repository = Arc::new(Mutex::new(
         adapters::postgres::repos::order_repository::OrderRepositoryImpl::new(pg_conn.clone()),
-    ));
-
-    let category_repository = Arc::new(Mutex::new(
-        adapters::postgres::repos::category_repository::CategoryRepositoryImpl::new(
-            pg_conn.clone(),
-        ),
     ));
 
     // Services

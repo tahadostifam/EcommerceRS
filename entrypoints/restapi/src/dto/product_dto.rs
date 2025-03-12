@@ -8,6 +8,7 @@ pub struct ProductCreateDTO {
     pub price: f64,
     pub stock: i32,
     pub product_image: Option<String>,
+    pub category_id: Option<i64>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -18,6 +19,7 @@ pub struct ProductUpdateDTO {
     pub price: f64,
     pub stock: i32,
     pub product_image: Option<String>,
+    pub category_id: Option<i64>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
