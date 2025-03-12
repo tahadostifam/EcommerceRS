@@ -1,15 +1,12 @@
-use std::ops::DerefMut;
-use std::sync::{Arc, Mutex};
-
-use diesel::prelude::*;
-use diesel::{ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl};
-
 use crate::adapters::postgres::entities::category::{CategoryEntity, NewCategoryEntity};
 use crate::core::ports::category_repository::CategoryRepository;
 use crate::{
     adapters::postgres::schema::categories,
     core::models::category::{Category, CategoryError},
 };
+use diesel::{ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl};
+use std::ops::DerefMut;
+use std::sync::{Arc, Mutex};
 
 pub struct CategoryRepositoryImpl {
     conn: Arc<Mutex<PgConnection>>,
@@ -50,30 +47,22 @@ impl CategoryRepository for CategoryRepositoryImpl {
     }
 
     fn find_category_by_id(&mut self, id: i64) -> Result<Category, CategoryError> {
-        // let mut conn_borrow = self.conn.lock().unwrap();
+        let records = self.find_all_categories()?;
 
-        // categories::table
-        //     .filter(categories::id.eq(id))
-        //     .first::<CategoryEntity>(conn_borrow.deref_mut())
-        //     .map(|entity| entity.to_model())
-        //     .map_err(|_| CategoryError::NotFound)
-        todo!();
-    }   
+        let mut conn_borrow = self.conn.lock().unwrap();
+        let record = categories::table
+            .filter(categories::id.eq(id))
+            .first::<CategoryEntity>(conn_borrow.deref_mut())
+            .map_err(|_| CategoryError::NotFound)?;
 
-    fn find_categories_by_name(&mut self, name: String) -> Result<Vec<Category>, CategoryError> {
-        // let mut conn_borrow = self.conn.lock().unwrap();
+        let mut parent: Option<Box<Category>> = None;
+        if let Some(parent_id) = record.parent_id {
+            if let Some(category) = records.iter().find(|&key| key.id == parent_id) {
+                parent = Some(Box::new(category.clone()));
+            }
+        }
 
-        // categories::table
-        //     .filter(categories::name.like(format!("%{}%", name)))
-        //     .load::<CategoryEntity>(conn_borrow.deref_mut())
-        //     .map(|entities| {
-        //         entities
-        //             .into_iter()
-        //             .map(|entity| entity.to_model())
-        //             .collect()
-        //     })
-        //     .map_err(|_| CategoryError::InternalError)
-        todo!();
+        Ok(record.to_model(parent))
     }
 
     fn find_all_categories(&mut self) -> Result<Vec<Category>, CategoryError> {
@@ -84,17 +73,21 @@ impl CategoryRepository for CategoryRepositoryImpl {
             .map(|entities| entities)
             .map_err(|_| CategoryError::InternalError)?;
 
-        let categories: Vec<Category> = records.clone().into_iter().map(|entity| {
-            let mut parent: Option<Box<Category>> = None;
-            if let Some(parent_id) = entity.parent_id.clone() {
-                let record = records.iter().find(|&key| key.id == parent_id);
-                if let Some(record) = record {
-                    parent = Some(Box::new(record.to_model(None))); // FIXME
+        let categories: Vec<Category> = records
+            .clone()
+            .into_iter()
+            .map(|entity| {
+                let mut parent: Option<Box<Category>> = None;
+                if let Some(parent_id) = entity.parent_id.clone() {
+                    let record = records.iter().find(|&key| key.id == parent_id);
+                    if let Some(record) = record {
+                        parent = Some(Box::new(record.to_model(None)));
+                    }
                 }
-            }
 
-            entity.to_model(parent)
-        }).collect();
+                entity.to_model(parent)
+            })
+            .collect();
 
         Ok(categories)
     }
@@ -106,18 +99,19 @@ impl CategoryRepository for CategoryRepositoryImpl {
         new_description: String,
         new_parent_id: Option<i64>,
     ) -> Result<Category, CategoryError> {
-        // let mut conn_borrow = self.conn.lock().unwrap();
+        let record = {
+            let mut conn_borrow = self.conn.lock().unwrap();
+            diesel::update(categories::table.filter(categories::id.eq(category_id)))
+                .set((
+                    categories::name.eq(new_name),
+                    categories::description.eq(new_description),
+                    categories::parent_id.eq(new_parent_id),
+                ))
+                .get_result::<CategoryEntity>(conn_borrow.deref_mut())
+                .map_err(|_| CategoryError::NotFound)?
+        };
 
-        // diesel::update(categories::table.filter(categories::id.eq(category_id)))
-        //     .set((
-        //         categories::name.eq(new_name),
-        //         categories::description.eq(new_description),
-        //         categories::parent_id.eq(new_parent_id),
-        //     ))
-        //     .get_result::<CategoryEntity>(conn_borrow.deref_mut())
-        //     .map(|entity| entity.to_model())
-        //     .map_err(|_| CategoryError::NotFound)
-        todo!();
+        self.find_category_by_id(record.id)
     }
 
     fn delete_category(&mut self, id: i64) -> Result<(), CategoryError> {

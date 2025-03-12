@@ -17,5 +17,4 @@ pub trait CategoryRepository: Send + Sync {
         new_parent_id: Option<i64>,
     ) -> Result<Category, CategoryError>;
     fn delete_category(&mut self, category_id: i64) -> Result<(), CategoryError>;
-    fn find_categories_by_name(&mut self, name: String) -> Result<Vec<Category>, CategoryError>;
 }
