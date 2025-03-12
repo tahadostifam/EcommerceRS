@@ -4,6 +4,9 @@ use crate::core::services::category_service::{CategoryService, new_category_serv
 use crate::core::services::email_service::new_email_service_devel;
 use crate::core::services::product_service::{ProductService, new_product_service};
 use crate::core::services::user_service::{UserService, new_user_service};
+use diesel::PgConnection;
+use diesel::r2d2::{ConnectionManager, Pool};
+use r2d2_redis::RedisConnectionManager;
 use std::sync::{Arc, Mutex};
 
 pub struct Services {
@@ -18,42 +21,44 @@ pub fn bootstrap_services() -> Services {
     let cfg = config::read();
 
     // Database Connections
-    let pg_conn = Arc::new(Mutex::new(
-        adapters::postgres::adapter::new_postgres_adapter(cfg.postgres.url.clone()),
-    ));
+    let pg_conn = ConnectionManager::<PgConnection>::new(cfg.postgres.url.clone());
+    let pg_pool  = Pool::builder()
+        .build(pg_conn)
+        .expect("Failed to create postgres pool.");
 
-    let redis_conn = Arc::new(Mutex::new(adapters::redis::adapter::new_redis_adapter(
-        cfg.redis.url.clone(),
-    )));
-
+    let redis_conn = RedisConnectionManager::new(cfg.redis.url.clone()).unwrap();
+    let redis_pool = Pool::builder()
+        .build(redis_conn)
+        .expect("Failed to create redis pool.");
+    
     // Repositories
     let auth_repository = Arc::new(Mutex::new(
-        adapters::redis::repos::auth_repository::AuthRepositoryImpl::new(redis_conn),
+        adapters::redis::repos::auth_repository::AuthRepositoryImpl::new(redis_pool.clone()),
     ));
 
     let user_repository = Arc::new(Mutex::new(
-        adapters::postgres::repos::user_repository::UserRepositoryImpl::new(pg_conn.clone()),
+        adapters::postgres::repos::user_repository::UserRepositoryImpl::new(pg_pool.clone()),
     ));
 
     let category_repository = Arc::new(Mutex::new(
         adapters::postgres::repos::category_repository::CategoryRepositoryImpl::new(
-            pg_conn.clone(),
+            pg_pool.clone(),
         ),
     ));
 
     let product_repository = Arc::new(Mutex::new(
         adapters::postgres::repos::product_repository::ProductRepositoryImpl::new(
-            pg_conn.clone(),
+            pg_pool.clone(),
             category_repository.clone(),
         ),
     ));
 
     let cart_repository = Arc::new(Mutex::new(
-        adapters::postgres::repos::cart_repository::CartRepositoryImpl::new(pg_conn.clone()),
+        adapters::postgres::repos::cart_repository::CartRepositoryImpl::new(pg_pool.clone()),
     ));
 
     let order_repository = Arc::new(Mutex::new(
-        adapters::postgres::repos::order_repository::OrderRepositoryImpl::new(pg_conn.clone()),
+        adapters::postgres::repos::order_repository::OrderRepositoryImpl::new(pg_pool.clone()),
     ));
 
     // Services

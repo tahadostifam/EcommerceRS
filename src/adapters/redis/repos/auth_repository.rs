@@ -2,15 +2,15 @@ use crate::core::{
     models::auth::{AuthError, RefreshToken},
     ports::auth_repository::AuthRepository,
 };
-use redis::Commands;
-use std::sync::{Arc, Mutex};
+use diesel::r2d2::Pool;
+use r2d2_redis::{redis::Commands, RedisConnectionManager};
 
 pub struct AuthRepositoryImpl {
-    conn: Arc<Mutex<redis::Client>>,
+    conn: Pool<RedisConnectionManager>,
 }
 
 impl AuthRepositoryImpl {
-    pub fn new(conn: Arc<Mutex<redis::Client>>) -> Self {
+    pub fn new(conn: Pool<RedisConnectionManager>) -> Self {
         AuthRepositoryImpl { conn }
     }
 }
@@ -22,12 +22,7 @@ impl AuthRepository for AuthRepositoryImpl {
         token: String,
         expires_at: chrono::NaiveDateTime,
     ) -> Result<(), AuthError> {
-        let mut client = self
-            .conn
-            .lock()
-            .unwrap()
-            .get_connection()
-            .map_err(|_| AuthError::InternalError)?;
+        let mut client = self.conn.get().map_err(|_| AuthError::InternalError)?;
 
         let value = serde_json::to_string(&RefreshToken { user_id })
             .map_err(|_| AuthError::InvalidPayload)?;
@@ -36,7 +31,7 @@ impl AuthRepository for AuthRepositoryImpl {
             .set_ex(
                 format!("user::{}::{}", user_id, token),
                 value,
-                expires_at.and_utc().timestamp() as u64,
+                expires_at.and_utc().timestamp().try_into().unwrap(),
             )
             .map_err(|_| AuthError::InternalError)?)
     }
@@ -46,12 +41,7 @@ impl AuthRepository for AuthRepositoryImpl {
     }
 
     fn remove_refresh_token(&mut self, token: &str) -> Result<(), AuthError> {
-        let mut client = self
-            .conn
-            .lock()
-            .unwrap()
-            .get_connection()
-            .map_err(|_| AuthError::InternalError)?;
+        let mut client = self.conn.get().map_err(|_| AuthError::InternalError)?;
 
         let key = self.find_refresh_token(token.to_string())?.0;
 
@@ -63,12 +53,7 @@ impl AuthRepository for AuthRepositoryImpl {
     }
 
     fn terminal_user_sessions(&mut self, user_id: &str) -> Result<(), AuthError> {
-        let mut client = self
-            .conn
-            .lock()
-            .unwrap()
-            .get_connection()
-            .map_err(|_| AuthError::InternalError)?;
+        let mut client = self.conn.get().map_err(|_| AuthError::InternalError)?;
 
         let pattern = format!("user::{}::*", user_id);
         let keys: Vec<String> = client
@@ -89,9 +74,7 @@ impl AuthRepositoryImpl {
     fn find_refresh_token(&mut self, token: String) -> Result<(String, RefreshToken), AuthError> {
         let mut client = self
             .conn
-            .lock()
-            .unwrap()
-            .get_connection()
+            .get()
             .map_err(|_| AuthError::InternalError)?;
 
         let pattern = format!("user::*::{}", token);

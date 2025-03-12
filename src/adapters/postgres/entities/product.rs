@@ -2,7 +2,7 @@ use crate::{adapters::postgres::schema::*, core::models::{category::Category, pr
 use chrono::NaiveDateTime;
 use diesel::{pg::Pg, prelude::*};
 
-#[derive(Debug, Selectable, Queryable, Insertable)]
+#[derive(Debug, Clone, Selectable, Queryable, Insertable)]
 #[diesel(table_name = products)]
 #[diesel(check_for_backend(Pg))]
 pub struct ProductEntity {
