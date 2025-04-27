@@ -83,6 +83,7 @@ async fn search_action(
 async fn update_action(
     product_service_guard: web::Data<Arc<Mutex<ProductService>>>,
     data: web::Json<ProductUpdateDTO>,
+    user: web::ReqData<User>
 ) -> Result<impl Responder, HttpProductError> {
     let mut product_service = product_service_guard.lock().unwrap();
     let product = product_service.update(
@@ -93,6 +94,7 @@ async fn update_action(
         data.0.stock,
         data.0.product_image,
         data.0.category_id,
+        user.into_inner()
     )?;
     Ok(HttpResponse::build(StatusCode::CREATED)
         .insert_header(ContentType::json())
@@ -109,9 +111,10 @@ async fn update_action(
 async fn delete_action(
     product_service_guard: web::Data<Arc<Mutex<ProductService>>>,
     data: web::Json<ProductDeleteDTO>,
+    user: web::ReqData<User>
 ) -> Result<impl Responder, HttpProductError> {
     let mut product_service = product_service_guard.lock().unwrap();
-    product_service.delete(data.0.product_id)?;
+    product_service.delete(data.0.product_id, user.into_inner())?;
     Ok(HttpResponse::build(StatusCode::CREATED)
         .insert_header(ContentType::json())
         .body(

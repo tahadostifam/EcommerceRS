@@ -40,7 +40,7 @@ impl ResponseError for HttpProductError {
             HttpProductError::NotFound => actix_web::http::StatusCode::BAD_REQUEST,
             HttpProductError::InvalidData => actix_web::http::StatusCode::BAD_REQUEST,
             HttpProductError::InvalidCategory => actix_web::http::StatusCode::BAD_REQUEST,
-            HttpProductError::PermissionDenied => actix_web::http::StatusCode::UNAUTHORIZED,
+            HttpProductError::PermissionDenied => actix_web::http::StatusCode::FORBIDDEN,
         }
     }
 

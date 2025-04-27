@@ -16,6 +16,9 @@ pub enum HttpCategoryError {
 
     #[display("category already exist")]
     CategoryAlreadyExist,
+
+    #[display("permission denied")]
+    PermissionDenied,
 }
 
 impl From<CategoryError> for HttpCategoryError {
@@ -25,6 +28,7 @@ impl From<CategoryError> for HttpCategoryError {
             CategoryError::NotFound => HttpCategoryError::NotFound,
             CategoryError::InvalidData => HttpCategoryError::InvalidData,
             CategoryError::CategoryAlreadyExist => HttpCategoryError::CategoryAlreadyExist,
+            CategoryError::PermissionDenied => HttpCategoryError::PermissionDenied,
         }
     }
 }
@@ -36,6 +40,7 @@ impl ResponseError for HttpCategoryError {
             HttpCategoryError::NotFound => actix_web::http::StatusCode::BAD_REQUEST,
             HttpCategoryError::InvalidData => actix_web::http::StatusCode::BAD_REQUEST,
             HttpCategoryError::CategoryAlreadyExist => actix_web::http::StatusCode::BAD_REQUEST,
+            HttpCategoryError::PermissionDenied => actix_web::http::StatusCode::FORBIDDEN,
         }
     }
 

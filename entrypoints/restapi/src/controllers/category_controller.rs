@@ -2,24 +2,28 @@ use crate::{
     dto::category_dto::{
         CategoryCreateDTO, CategoryCreatedDTO, CategoryDeleteDTO, CategoryGetDTO, CategoryUpdateDTO,
     },
-    errors::{category_errors::HttpCategoryError, SimpleMessage}, middlewares::auth_middleware::AuthMiddleware,
+    errors::{SimpleMessage, category_errors::HttpCategoryError},
+    middlewares::auth_middleware::AuthMiddleware,
 };
 use actix_web::{
     HttpResponse, Responder, Scope, get,
     http::{StatusCode, header::ContentType},
     post, web,
 };
-use ecommercers::core::services::category_service::CategoryService;
+use ecommercers::core::{models::user::User, services::category_service::CategoryService};
 use std::sync::{Arc, Mutex};
 
 pub fn new_category_controller(auth_middleware: AuthMiddleware) -> Scope {
     web::scope("/categories")
-        .service(create_action)
         .service(get_all_action)
         .service(get_action)
-        .service(create_action)
-        .service(delete_action)
-        .service(update_action)
+        .service(
+            web::scope("")
+                .wrap(auth_middleware)
+                .service(create_action)
+                .service(delete_action)
+                .service(update_action),
+        )
 }
 
 #[get("/get")]
@@ -49,9 +53,15 @@ async fn get_all_action(
 async fn create_action(
     category_service_guard: web::Data<Arc<Mutex<CategoryService>>>,
     data: web::Json<CategoryCreateDTO>,
+    user: web::ReqData<User>,
 ) -> Result<impl Responder, HttpCategoryError> {
     let mut category_service = category_service_guard.lock().unwrap();
-    let category = category_service.create(data.0.name, data.0.description, data.0.parent_id)?;
+    let category = category_service.create(
+        data.0.name,
+        data.0.description,
+        data.0.parent_id,
+        user.into_inner(),
+    )?;
     Ok(HttpResponse::build(StatusCode::CREATED)
         .insert_header(ContentType::json())
         .body(
@@ -67,6 +77,7 @@ async fn create_action(
 async fn update_action(
     category_service_guard: web::Data<Arc<Mutex<CategoryService>>>,
     data: web::Json<CategoryUpdateDTO>,
+    user: web::ReqData<User>,
 ) -> Result<impl Responder, HttpCategoryError> {
     let mut category_service = category_service_guard.lock().unwrap();
     let category = category_service.update(
@@ -74,6 +85,7 @@ async fn update_action(
         data.0.name,
         data.0.description,
         data.0.parent_id,
+        user.into_inner(),
     )?;
     Ok(HttpResponse::build(StatusCode::OK)
         .insert_header(ContentType::json())
@@ -90,9 +102,10 @@ async fn update_action(
 async fn delete_action(
     category_service_guard: web::Data<Arc<Mutex<CategoryService>>>,
     data: web::Json<CategoryDeleteDTO>,
+    user: web::ReqData<User>,
 ) -> Result<impl Responder, HttpCategoryError> {
     let mut category_service = category_service_guard.lock().unwrap();
-    category_service.delete(data.0.category_id)?;
+    category_service.delete(data.0.category_id, user.into_inner())?;
     Ok(HttpResponse::build(StatusCode::OK)
         .insert_header(ContentType::json())
         .body(

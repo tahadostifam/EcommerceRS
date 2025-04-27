@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use crate::core::{
     models::{
         product::{Product, ProductError},
-        user::{requires_role, User, UserRole},
+        user::{User, UserRole, requires_role},
     },
     ports::product_repository::ProductRepository,
 };
@@ -66,9 +66,14 @@ impl ProductService {
         new_stock: i32,
         new_product_image: Option<String>,
         new_category_id: Option<i64>,
+        user: User,
     ) -> Result<Product, ProductError> {
         let mut product_repo: std::sync::MutexGuard<'_, dyn ProductRepository> =
             self.product_repo.lock().unwrap();
+
+        if !requires_role(user.user_role, UserRole::Manager) {
+            return Err(ProductError::PermissionDenied);
+        }
 
         let product = product_repo.update_product(
             id,
@@ -83,10 +88,15 @@ impl ProductService {
         Ok(product)
     }
 
-    pub fn delete(&mut self, id: i64) -> Result<(), ProductError> {
+    pub fn delete(&mut self, product_id: i64, user: User) -> Result<(), ProductError> {
         let mut product_repo: std::sync::MutexGuard<'_, dyn ProductRepository> =
             self.product_repo.lock().unwrap();
-        product_repo.delete_product(id)?;
+
+        if !requires_role(user.user_role, UserRole::Manager) {
+            return Err(ProductError::PermissionDenied);
+        }
+
+        product_repo.delete_product(product_id)?;
         Ok(())
     }
 

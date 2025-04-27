@@ -1,3 +1,4 @@
+use super::email_service::EmailService;
 use crate::core::{
     models::{
         auth::AuthError,
@@ -16,8 +17,6 @@ use std::{
     collections::HashMap,
     sync::{Arc, Mutex},
 };
-
-use super::email_service::EmailService;
 
 const REFRESH_TOKEN_LENGTH: i32 = 30;
 const REFRESH_TOKEN_TTL: TimeDelta = Duration::days(30);

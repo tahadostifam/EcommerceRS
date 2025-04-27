@@ -17,4 +17,5 @@ pub enum CategoryError {
     NotFound,
     InvalidData,
     CategoryAlreadyExist,
+    PermissionDenied
 }
