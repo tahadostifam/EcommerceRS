@@ -1,4 +1,4 @@
-use actix_web::{App, HttpServer, web};
+use actix_web::{middleware::{self, from_fn}, web, App, HttpServer};
 use controllers::{
     category_controller::new_category_controller, product_controller::new_product_controller,
     user_controller::new_user_controller,
@@ -25,6 +25,8 @@ async fn main() -> std::io::Result<()> {
             .service(new_user_controller())
             .service(new_product_controller())
             .service(new_category_controller())
+            .wrap(middleware::Logger::default())
+            .wrap(from_fn(crate::middlewares::auth_middleware::auth_middleware))
     })
     .bind(endpoint_addr)
     .unwrap()

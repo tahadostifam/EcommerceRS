@@ -1,12 +1,16 @@
 use crate::{
     dto::user_dto::{
-        UserLoggedInDTO, UserLoginDTO, UserLogoutDTO, UserNewAccessTokenDTO, UserRefreshTokenDTO, UserRegisterDTO
+        UserLoggedInDTO, UserLoginDTO, UserLogoutDTO, UserNewAccessTokenDTO, UserRefreshTokenDTO,
+        UserRegisterDTO,
     },
-    errors::{user_errors::HttpAuthError, ErrorMessage, SimpleMessage},
+    errors::{ErrorMessage, SimpleMessage, user_errors::HttpAuthError},
 };
 use actix_web::{
     HttpRequest, HttpResponse, Responder, Scope,
-    http::{StatusCode, header::ContentType},
+    http::{
+        StatusCode,
+        header::{AUTHORIZATION, ContentType},
+    },
     post, web,
 };
 use ecommercers::core::services::user_service::UserService;
@@ -90,24 +94,20 @@ async fn authorization_action(
 ) -> Result<impl Responder, HttpAuthError> {
     let mut user_service = user_service_guard.lock().unwrap();
 
-    if let Some(auth_header) = req.headers().get("Authorization") {
-        if let Ok(auth_str) = auth_header.to_str() {
-            if auth_str.starts_with("Bearer ") {
-                let access_token = auth_str[7..].to_string(); // Extract token after "Bearer "
+    if let Some(auth_header) = req.headers().get(AUTHORIZATION) {
+        let auth_header = auth_header.to_str().unwrap();
 
-                let user = user_service.authorization(access_token)?;
+        if auth_header.starts_with("Bearer ") {
+            let access_token = auth_header[7..].to_string(); // Extract token after "Bearer "
 
-                return Ok(HttpResponse::Ok()
-                    .insert_header(ContentType::json())
-                    .body(serde_json::to_string(&user).unwrap()));
-            } else {
-                return Ok(HttpResponse::BadRequest().json(ErrorMessage {
-                    error: "invalid authorization header format".to_string(),
-                }));
-            }
+            let user = user_service.authorization(access_token)?;
+
+            return Ok(HttpResponse::Ok()
+                .insert_header(ContentType::json())
+                .body(serde_json::to_string(&user).unwrap()));
         } else {
             return Ok(HttpResponse::BadRequest().json(ErrorMessage {
-                error: "invalid authorization header value".to_string(),
+                error: "invalid authorization header format".to_string(),
             }));
         }
     }
@@ -129,7 +129,7 @@ async fn logout_action(
             .insert_header(ContentType::json())
             .body(
                 serde_json::to_string(&SimpleMessage {
-                    message: "logged out".to_string()
+                    message: "logged out".to_string(),
                 })
                 .unwrap(),
             )),
