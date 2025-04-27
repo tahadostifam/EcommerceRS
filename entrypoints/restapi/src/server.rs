@@ -1,8 +1,9 @@
-use actix_web::{middleware::{self, from_fn}, web, App, HttpServer};
+use actix_web::{App, HttpServer, middleware, web};
 use controllers::{
     category_controller::new_category_controller, product_controller::new_product_controller,
     user_controller::new_user_controller,
 };
+use middlewares::auth_middleware::new_auth_middleware;
 
 mod controllers;
 mod dto;
@@ -23,10 +24,13 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(services.product_service.clone()))
             .app_data(web::Data::new(services.category_service.clone()))
             .service(new_user_controller())
-            .service(new_product_controller())
-            .service(new_category_controller())
+            .service(new_product_controller(new_auth_middleware(
+                services.user_service.clone(),
+            )))
+            .service(new_category_controller(new_auth_middleware(
+                services.user_service.clone(),
+            )))
             .wrap(middleware::Logger::default())
-            .wrap(from_fn(crate::middlewares::auth_middleware::auth_middleware))
     })
     .bind(endpoint_addr)
     .unwrap()

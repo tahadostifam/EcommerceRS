@@ -1,33 +1,41 @@
 use crate::{
     dto::product_dto::{
-        ProductCreateDTO, ProductCreatedDTO, ProductDeleteDTO, ProductGetDTO, ProductSearchDTO,
-        ProductUpdateDTO, ProductUpdatedDTO,
+        ProductCreateDTO, ProductDeleteDTO, ProductGetDTO, ProductSearchDTO, ProductUpdateDTO,
+        ProductUpdatedDTO,
     },
     errors::{SimpleMessage, product_errors::HttpProductError},
+    middlewares::auth_middleware::AuthMiddleware,
 };
+use actix_web::Scope;
 use actix_web::{
-    HttpResponse, Responder, Scope, get,
+    HttpResponse, Responder, get,
     http::{StatusCode, header::ContentType},
     post, web,
 };
-use ecommercers::core::services::product_service::ProductService;
+use ecommercers::core::{models::user::User, services::product_service::ProductService};
 use std::sync::{Arc, Mutex};
 
-pub fn new_product_controller() -> Scope {
+pub fn new_product_controller(auth_middleware: AuthMiddleware) -> Scope {
     web::scope("/products")
-        .service(create_action)
         .service(get_action)
         .service(search_action)
-        .service(update_action)
-        .service(delete_action)
+        .service(
+            web::scope("") // Create a nested scope (can keep the same prefix)
+                .wrap(auth_middleware)
+                .service(create_action)
+                .service(update_action)
+                .service(delete_action),
+        )
 }
 
 #[post("/create")]
 async fn create_action(
     product_service_guard: web::Data<Arc<Mutex<ProductService>>>,
     data: web::Json<ProductCreateDTO>,
+    user: web::ReqData<User>
 ) -> Result<impl Responder, HttpProductError> {
-    dbg!(data.clone());
+    dbg!(user.clone());
+    
     Ok("not implemented")
 
     // let mut product_service = product_service_guard.lock().unwrap();

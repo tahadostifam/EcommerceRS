@@ -22,4 +22,4 @@ name = "ecommercers"
 path = "./src/ecommercers.rs"
 
 [workspace]
-members = ["entrypoints/restapi"]
+members = ["entrypoints/restapi", "src/utils"]

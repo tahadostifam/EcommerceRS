@@ -2,7 +2,7 @@ use crate::{
     dto::category_dto::{
         CategoryCreateDTO, CategoryCreatedDTO, CategoryDeleteDTO, CategoryGetDTO, CategoryUpdateDTO,
     },
-    errors::{SimpleMessage, category_errors::HttpCategoryError},
+    errors::{category_errors::HttpCategoryError, SimpleMessage}, middlewares::auth_middleware::AuthMiddleware,
 };
 use actix_web::{
     HttpResponse, Responder, Scope, get,
@@ -12,7 +12,7 @@ use actix_web::{
 use ecommercers::core::services::category_service::CategoryService;
 use std::sync::{Arc, Mutex};
 
-pub fn new_category_controller() -> Scope {
+pub fn new_category_controller(auth_middleware: AuthMiddleware) -> Scope {
     web::scope("/categories")
         .service(create_action)
         .service(get_all_action)
