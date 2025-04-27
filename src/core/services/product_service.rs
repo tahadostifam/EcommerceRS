@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use crate::core::{
     models::{
         product::{Product, ProductError},
-        user::User,
+        user::{requires_role, User, UserRole},
     },
     ports::product_repository::ProductRepository,
 };
@@ -41,6 +41,11 @@ impl ProductService {
         user: User,
     ) -> Result<Product, ProductError> {
         let mut product_repo = self.product_repo.lock().unwrap();
+
+        if !requires_role(user.user_role, UserRole::Manager) {
+            return Err(ProductError::PermissionDenied);
+        }
+
         let product = product_repo.create_product(
             name,
             description,

@@ -26,11 +26,15 @@ pub enum UserError {
     EmailAlreadyExists,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub enum UserRole {
     User,
     Manager,
     Admin,
+}
+
+pub fn requires_role(user_role: UserRole, required: UserRole) -> bool  {
+    user_role >= required
 }
 
 impl TryFrom<String> for UserRole {

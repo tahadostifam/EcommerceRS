@@ -1,9 +1,8 @@
 use crate::{
     dto::product_dto::{
-        ProductCreateDTO, ProductDeleteDTO, ProductGetDTO, ProductSearchDTO, ProductUpdateDTO,
-        ProductUpdatedDTO,
+        ProductCreateDTO, ProductCreatedDTO, ProductDeleteDTO, ProductGetDTO, ProductSearchDTO, ProductUpdateDTO, ProductUpdatedDTO
     },
-    errors::{SimpleMessage, product_errors::HttpProductError},
+    errors::{product_errors::HttpProductError, SimpleMessage},
     middlewares::auth_middleware::AuthMiddleware,
 };
 use actix_web::Scope;
@@ -34,29 +33,26 @@ async fn create_action(
     data: web::Json<ProductCreateDTO>,
     user: web::ReqData<User>
 ) -> Result<impl Responder, HttpProductError> {
-    dbg!(user.clone());
-    
-    Ok("not implemented")
+    let mut product_service = product_service_guard.lock().unwrap();
+    let product = product_service.create(
+        data.0.name,
+        data.0.description,
+        data.0.price,
+        data.0.stock,
+        data.0.product_image,
+        data.0.category_id,
+        user.into_inner()
+    )?;
 
-    // let mut product_service = product_service_guard.lock().unwrap();
-    // let product = product_service.create(
-    //     data.0.name,
-    //     data.0.description,
-    //     data.0.price,
-    //     data.0.stock,
-    //     data.0.product_image,
-    //     data.0.category_id
-    // )?;
-
-    // Ok(HttpResponse::build(StatusCode::CREATED)
-    //     .insert_header(ContentType::json())
-    //     .body(
-    //         serde_json::to_string(&ProductCreatedDTO {
-    //             product,
-    //             message: "product created".to_string(),
-    //         })
-    //         .unwrap(),
-    //     ))
+    Ok(HttpResponse::build(StatusCode::CREATED)
+        .insert_header(ContentType::json())
+        .body(
+            serde_json::to_string(&ProductCreatedDTO {
+                product,
+                message: "product created".to_string(),
+            })
+            .unwrap(),
+        ))
 }
 
 #[get("/get")]
